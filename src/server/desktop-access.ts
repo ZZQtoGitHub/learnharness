@@ -63,6 +63,24 @@ export function apiRequestRefusal(request: Request, env: Record<string, string |
 
 const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
+/** Tunnel deployments (instabox private port, Cloudflare Tunnel, …) rewrite the
+ * Host header to an internal address, so the server-computed same-origin can
+ * never equal the browser's public Origin and every write would be refused as
+ * cross-site. LH_TRUSTED_ORIGIN lets the operator declare the ONE public origin
+ * allowed to write (exact origin match, https only). It widens nothing else:
+ * the Host check above still applies, and unlisted origins stay refused. */
+function trustedOriginAllowed(origin: string | null, env: Record<string, string | undefined>): boolean {
+	const configured = env.LH_TRUSTED_ORIGIN?.trim();
+	if (!configured || !origin) return false;
+	try {
+		const trusted = new URL(configured);
+		if (trusted.protocol !== "https:" || trusted.username || trusted.password || trusted.pathname !== "/" || trusted.search || trusted.hash) return false;
+		return new URL(origin).origin === trusted.origin;
+	} catch {
+		return false;
+	}
+}
+
 /** Browser-only API gate: a Host check against DNS rebinding and a
  * cross-site check on writes. Writes without Origin or Sec-Fetch-Site come
  * from non-browser clients and are allowed. Returns the refusal, if any. */
@@ -74,6 +92,7 @@ export function browserAPIRefusal(request: Request, env: Record<string, string |
 	const site = request.headers.get("sec-fetch-site");
 	const origin = request.headers.get("origin");
 	if ((site !== null && site !== "same-origin") || (origin !== null && origin !== subscriptionRequestOrigin(request))) {
+		if (trustedOriginAllowed(origin, env)) return;
 		return "Cross-site requests to the LearnHarness API are not allowed.";
 	}
 }
