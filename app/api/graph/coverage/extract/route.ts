@@ -19,14 +19,14 @@ export async function POST(request: Request) {
 	try {
 		body = await request.json();
 	} catch {
-		return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+		return Response.json({ error: "JSON 请求体无效" }, { status: 400 });
 	}
 	const chatId = (body as { chatId?: unknown }).chatId;
 	if (typeof chatId !== "string" || chatId === "") {
 		return Response.json({ error: 'Body must be {chatId: string}' }, { status: 400 });
 	}
 	if (extractionStatuses().some((run) => run.kind === "chat" && run.chatId === chatId)) {
-		return Response.json({ error: "An extraction run is already in flight for this session" }, { status: 409 });
+		return Response.json({ error: "该会话已有一次提取正在进行" }, { status: 409 });
 	}
 	// Fire-and-forget, like the trigger: the dock + the coverage panel's
 	// running flags track progress; the promise never blocks the response.

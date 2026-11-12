@@ -83,11 +83,11 @@ export const problemDefinition = {
 
 /** Narrow the public plain-schema payload without relying on a TypeBox-only static brand. */
 export function readTests(payload: unknown): CodingTests {
-  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) throw new Error("Coding question payload is unavailable.");
+  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) throw new Error("编程题的载荷不可用。");
   const tests = (payload as Record<string, unknown>).tests;
-  if (tests === null || typeof tests !== "object" || Array.isArray(tests)) throw new Error("Coding question test recipe is unavailable.");
+  if (tests === null || typeof tests !== "object" || Array.isArray(tests)) throw new Error("编程题的测试配置不可用。");
   const recipe = tests as Record<string, unknown>;
-  if (typeof recipe.program !== "string" || !/\S/.test(recipe.program) || !Array.isArray(recipe.args) || !recipe.args.every(arg => typeof arg === "string") || typeof recipe.code !== "string" || !/\S/.test(recipe.code)) throw new Error("Coding question test recipe is invalid.");
+  if (typeof recipe.program !== "string" || !/\S/.test(recipe.program) || !Array.isArray(recipe.args) || !recipe.args.every(arg => typeof arg === "string") || typeof recipe.code !== "string" || !/\S/.test(recipe.code)) throw new Error("编程题的测试配置无效。");
   return { program: recipe.program, args: recipe.args, code: recipe.code };
 }
 

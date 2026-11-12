@@ -136,9 +136,9 @@ export type ReasoningTriggerProps = ComponentProps<
    language; motion (spinner + shimmer) stays the working signal. */
 const defaultGetThinkingMessage = (isStreaming: boolean) => {
   if (isStreaming) {
-    return <Shimmer duration={1}>Thinking...</Shimmer>;
+    return <Shimmer duration={1}>思考中…</Shimmer>;
   }
-  return <p>AGENT’S THINKING</p>;
+  return <p>智能体的思考</p>;
 };
 
 export const ReasoningTrigger = memo(
@@ -175,7 +175,7 @@ export const ReasoningTrigger = memo(
                 the component default (h-3) — IDENTICAL to the placeholder
                 spinner (owner, 2026-10-02): the handoff between the two
                 states must be visually seamless, one size everywhere. */}
-            {isStreaming && <BrailleSpinner label="Thinking" />}
+            {isStreaming && <BrailleSpinner label="思考" />}
             {getThinkingMessage(isStreaming)}
             <ChevronDownIcon
               className={cn(

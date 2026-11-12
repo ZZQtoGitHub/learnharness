@@ -14,9 +14,9 @@ export type UpdateState = {
 
 export const APP_VERSION = process.env.LH_VERSION ?? "";
 const HOMEPAGE = process.env.LH_HOMEPAGE ?? "";
-export const MANUAL_UPDATE_HINT = "Checking downloads available updates. Downloaded updates install when you quit the app.";
-export const AUTO_UPDATE_HINT = "Check at startup and every 24 hours. Turning this off does not stop updates already in progress or ready to install.";
-const UPDATE_ERROR = "Couldn’t check for updates. Try again later.";
+export const MANUAL_UPDATE_HINT = "检查会下载可用的更新。已下载的更新将在你退出应用时安装。";
+export const AUTO_UPDATE_HINT = "在启动时及每 24 小时检查一次。关闭此选项不会停止已在进行的更新或待安装的更新。";
+const UPDATE_ERROR = "无法检查更新，请稍后重试。";
 
 /** Subscribe before requesting the snapshot. IPC replies and pushes can
  * cross; a revision prevents an older reply from hiding a newer event.
@@ -46,10 +46,10 @@ export function useUpdateState() {
 
 export function updateStatusText(state: UpdateState | null): string | null {
 	switch (state?.status) {
-		case "checking": return "Checking for updates…";
-		case "downloading": return state.version ? `Downloading version ${state.version}…` : "Downloading an update…";
-		case "up-to-date": return "No newer version was found at the last check.";
-		case "downloaded": return `${state.version ? `Version ${state.version}` : "An update"} is ready. It will install when you quit the app.`;
+		case "checking": return "正在检查更新…";
+		case "downloading": return state.version ? `正在下载版本 ${state.version}…` : "正在下载更新…";
+		case "up-to-date": return "上次检查未发现新版本。";
+		case "downloaded": return `${state.version ? `版本 ${state.version}` : "有更新"} 已就绪，退出应用时将自动安装。`;
 		case "error": return UPDATE_ERROR;
 		default: return null;
 	}
@@ -84,28 +84,29 @@ export function UpdateSettings({
 	return (
 		<>
 			<SettingsRow
-				label={`Version ${version || "unknown"}`}
+				label={`版本 ${version || "未知"}`}
 				testid="row-version"
 				hint={
 					<>
 						{status && <span className="block" role="status" data-testid="update-status">{status}</span>}
 						{active && <span className="block">{MANUAL_UPDATE_HINT}</span>}
-						{releaseNotes && <a href={releaseNotes} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-foreground hover:underline" data-testid="release-notes">Release notes</a>}
+						{releaseNotes && <a href={releaseNotes} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-foreground hover:underline" data-testid="release-notes">发行说明</a>}
 					</>
 				}
 			>
 				{active && (state.status === "downloaded" ? (
-					<Button type="button" size="xs" className="cursor-pointer" data-testid="update-restart" onClick={() => window.lh?.installUpdate?.()}>Restart</Button>
+					<Button type="button" size="xs" className="cursor-pointer" data-testid="update-restart" onClick={() => window.lh?.installUpdate?.()}>重启</Button>
 				) : (
 					<Button type="button" size="xs" variant="outline" className="cursor-pointer disabled:cursor-not-allowed" data-testid="update-check" disabled={busy} aria-busy={busy} onClick={check}>
-						{busy && <BrailleSpinner label={state.status === "downloading" ? "Downloading update" : "Checking for updates"} />}
-						Check for updates
+						{busy && <BrailleSpinner label={state.status === "downloading" ? "正在下载更新" : "正在检查更新"} />}
+						检查更新
 					</Button>
 				))}
 			</SettingsRow>
 			{active && (
-				<SettingsRow label="Automatic updates" hint={AUTO_UPDATE_HINT} testid="row-auto-update">
-					<Toggle checked={autoUpdate} label="auto update" onChange={onAutoUpdateChange} />
+				<SettingsRow label="自动更新" hint={AUTO_UPDATE_HINT} testid="row-auto-update">
+					<Toggle checked={autoUpdate} label="自动更新"
+					testid="toggle-auto-update" onChange={onAutoUpdateChange} />
 				</SettingsRow>
 			)}
 		</>

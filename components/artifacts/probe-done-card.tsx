@@ -43,12 +43,12 @@ export function ProbeDoneCard({ part }: { part: { input?: unknown; output?: unkn
 
 	const heading = <>
 		<ClipboardCheckIcon className="size-3.5 text-primary" />
-		<span className="min-w-0 truncate">Probe assessment</span>
+		<span className="min-w-0 truncate">探查评估</span>
 	</>;
 	const note = output && !output.ok ? <>
-		The prober retried: {output.error}
-	</> : state === "output-error" ? "The assessment was malformed — the prober retried with a corrected one."
-		: !strands ? "Writing the assessment…" : null;
+		探查器已重试: {output.error}
+	</> : state === "output-error" ? "评估内容格式有误——探查器已修正后重试。"
+		: !strands ? "正在撰写评估…" : null;
 
 	if (note || !strands) return (
 		<div data-testid="probe-done-card" className="my-3 rounded-xl border bg-card/60 p-3">
@@ -64,7 +64,7 @@ export function ProbeDoneCard({ part }: { part: { input?: unknown; output?: unkn
 			<summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl p-3 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:bg-accent/40 group-open:rounded-b-none group-open:border-b [&::-webkit-details-marker]:hidden">
 				{heading}
 				<span className="ml-auto shrink-0 font-normal normal-case tracking-normal text-muted-foreground/70">
-					{strands.length} strand{strands.length === 1 ? "" : "s"}
+					{strands.length} 条线索{strands.length === 1 ? "" : ""}
 				</span>
 				<ChevronRightIcon className="size-3 shrink-0 opacity-50 transition-transform group-open:rotate-90" />
 			</summary>

@@ -31,7 +31,7 @@ export function PluginWorkerCard({ result, toolCallId }: { result: PluginBackgro
 		<div data-testid="plugin-worker-fallback" className="space-y-2 text-sm">
 			<div className="[&_p:first-child]:mt-0 [&_p:last-child]:mb-0"><MessageResponse>{result.text}</MessageResponse></div>
 			<details className="text-xs text-muted-foreground">
-				<summary className="cursor-pointer">Task details</summary>
+				<summary className="cursor-pointer">任务详情</summary>
 				<pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono">{JSON.stringify({
 					input: result.input,
 					outcome: result.outcome,
@@ -42,7 +42,7 @@ export function PluginWorkerCard({ result, toolCallId }: { result: PluginBackgro
 	);
 	return (
 		<section data-testid="plugin-worker-card" className="space-y-2">
-			{result.formatError && <p role="alert" className="text-xs text-destructive">Result formatting failed: {result.formatError}</p>}
+			{result.formatError && <p role="alert" className="text-xs text-destructive">结果格式化失败：{result.formatError}</p>}
 			<PluginWorkerResultSurface label={result.toolName} status={result.outcome.status} text={result.text} presentation={presentation}>
 				<PluginToolRenderer part={part} fallback={fallback} />
 			</PluginWorkerResultSurface>

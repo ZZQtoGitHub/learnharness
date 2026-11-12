@@ -6,7 +6,7 @@ import { Hint } from "@/components/ui/hint";
 
 /** Shared research/PDF completion grammar. The host owns the summary; only
  * the expanded body is replaceable by a plugin renderer. */
-export function WorkerResultDetails({ heading, children, icon = <CheckIcon className="size-3.5" />, testId, headerTestId, headerTooltip, disclosure = "labels", viewLabel = "view brief", hideLabel = "hide brief" }: {
+export function WorkerResultDetails({ heading, children, icon = <CheckIcon className="size-3.5" />, testId, headerTestId, headerTooltip, disclosure = "labels", viewLabel = "查看摘要", hideLabel = "收起摘要" }: {
 	heading: ReactNode;
 	children: ReactNode;
 	icon?: ReactNode;

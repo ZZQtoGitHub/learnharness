@@ -13,23 +13,23 @@ const AUTHORIZE = `${ISSUER}/api/accounts/authorize`;
 const TOKEN = `${ISSUER}/api/accounts/oauth/token`;
 const JWKS = `${ISSUER}/.well-known/jwks.json`;
 const SCOPES = ["openid", "profile", "email", "offline_access", "resource.invoke", "chatgpt.tokens.use.direct"];
-const REVOCATION_WARNING = "Account disconnected locally. Remote revocation could not be confirmed.";
+const REVOCATION_WARNING = "账号已在本地断开，但无法确认远端吊销是否生效。";
 const random = () => crypto.randomBytes(32).toString("base64url");
 const fail = (code) => Object.assign(new Error(code), { code });
 const publicError = (err) => ({
-	cancelled: "ChatGPT sign-in cancelled.",
-	timeout: "ChatGPT sign-in timed out. Try again.",
-	storage: "ChatGPT credentials could not be read or saved. Check local file access, then reconnect before making requests.",
-	identity: "ChatGPT sign-in could not be verified. Select the intended saved account and try again.",
-	scope: "ChatGPT plan permission is missing. Reconnect and authorize ChatGPT plan use.",
-	disconnected: "This ChatGPT connection is disconnected. Reconnect in Providers.",
-	background: "ChatGPT background use is off in this app. Enable Allow background use for all ChatGPT accounts in Providers, or explicitly select an API-key model for that workload.",
-	catalog: "The ChatGPT account model catalog is unavailable. Retry the connection; no API-key fallback was used.",
-	expired: "The ChatGPT session expired. Reconnect in Providers.",
-	network: "ChatGPT could not be reached. Check your connection and try again.",
-	pending: "A ChatGPT sign-in is already pending.",
-	unavailable: "ChatGPT sign-in is unavailable in browser-only mode.",
-}[err?.code] || "ChatGPT sign-in failed. Try again; no API-key fallback was used.");
+	cancelled: "已取消 ChatGPT 登录。",
+	timeout: "ChatGPT 登录超时，请重试。",
+	storage: "无法读取或保存 ChatGPT 凭据。请检查本地文件访问权限，然后重新连接再发送请求。",
+	identity: "无法验证 ChatGPT 登录。请选择要使用的已保存账号后重试。",
+	scope: "缺少 ChatGPT 套餐权限。请重新连接并授权使用 ChatGPT 套餐。",
+	disconnected: "此 ChatGPT 连接已断开。请在“服务商”中重新连接。",
+	background: "本应用已关闭 ChatGPT 的后台使用。请在“服务商”中为所有 ChatGPT 账号启用“允许后台使用”，或为该任务显式选择一个 API 密钥模型。",
+	catalog: "无法获取 ChatGPT 账号的模型目录。请重试连接；未回退到 API 密钥。",
+	expired: "ChatGPT 会话已过期。请在“服务商”中重新连接。",
+	network: "无法连接到 ChatGPT。请检查网络后重试。",
+	pending: "已有 ChatGPT 登录正在进行中。",
+	unavailable: "在仅浏览器模式下无法使用 ChatGPT 登录。",
+}[err?.code] || "ChatGPT 登录失败。请重试；未回退到 API 密钥。");
 
 const nonempty = (v) => typeof v === "string" && v.length > 0 && !/[\x00-\x20\x7f]/.test(v);
 const planScopes = (tokens) => !!tokens?.accessToken && SCOPES.every((scope) => tokens.scopes.includes(scope));
@@ -190,7 +190,7 @@ function createChatGPT({ store, openExternal, fetch: request = globalThis.fetch,
 				const r = members.find((r) => r.id === state.activeId) ?? members.find((r) => !r.reconnectRequired && planScopes(r.tokens)) ?? members[0];
 				return {
 					id: r.id,
-					email: r.email || "ChatGPT account",
+					email: r.email || "ChatGPT 账号",
 					registration: r.clientId,
 					connected: !storageDenied && !closed && !paused && !suspended && !r.reconnectRequired && planScopes(r.tokens),
 					planEnabled: !storageDenied && !r.reconnectRequired && planScopes(r.tokens),
@@ -292,9 +292,9 @@ function createChatGPT({ store, openExternal, fetch: request = globalThis.fetch,
 				if (req.method !== "GET" || callback.origin !== new URL(redirectUri).origin || callback.pathname !== "/auth/callback" || req.headers.host !== new URL(redirectUri).host || consumed) { res.writeHead(404).end(); return; }
 				const params = callback.searchParams;
 				// Reject duplicate parameters and unsolicited callbacks without consuming a valid pending attempt.
-				if (["state", "code", "client_id", "error"].some((key) => params.getAll(key).length > 1) || params.get("state") !== expectedState) { res.writeHead(400).end("Sign-in could not be verified."); return; }
+				if (["state", "code", "client_id", "error"].some((key) => params.getAll(key).length > 1) || params.get("state") !== expectedState) { res.writeHead(400).end("无法验证登录。"); return; }
 				consumed = true;
-				res.writeHead(200, { "content-type": "text/plain; charset=utf-8" }).end("Return to LearnHarness to view the sign-in result. You may close this tab.");
+				res.writeHead(200, { "content-type": "text/plain; charset=utf-8" }).end("请返回 LearnHarness 查看登录结果，随后可以关闭此标签页。");
 				cleanup();
 				try {
 					if (params.has("error")) throw fail(params.get("error") === "access_denied" ? "cancelled" : "identity");

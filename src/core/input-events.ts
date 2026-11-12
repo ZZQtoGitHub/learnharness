@@ -226,10 +226,10 @@ export function parseChatInput(input: unknown): ChatInput {
 		case "plugin-problem-submission": {
 			if (typeof i.problemId !== "string" || !i.problemId) throw new ChatInputError("plugin-problem-submission requires problemId");
 			if (!isPluginQuestionJson(i.submission)) throw new ChatInputError("plugin-problem-submission requires finite JSON submission");
-			if (i.thinking !== undefined && typeof i.thinking !== "string") throw new ChatInputError("Problem thinking must be text");
+			if (i.thinking !== undefined && typeof i.thinking !== "string") throw new ChatInputError("题目的思考内容必须是文本");
 			let images;
 			try { images = i.images === undefined ? undefined : preparePluginProblemSubmissionImages(i.images); }
-			catch { throw new ChatInputError("Invalid problem submission images"); }
+			catch { throw new ChatInputError("题目提交的图片无效"); }
 			return { type: "plugin-problem-submission", problemId: i.problemId, occurrence: parsePluginQuestionOccurrence(i.occurrence), submission: i.submission, ...(i.thinking !== undefined ? { thinking: i.thinking as string } : {}), ...(images ? { images } : {}) };
 		}
 		case "plugin-question-answer": {
@@ -426,7 +426,7 @@ export function retryDrops(messages: readonly LhMessage[]): Set<string> {
 	if (ids.size === 0) {
 		const failure = failedResponseAtEnd(messages);
 		if (failure) {
-			throw new ChatInputError(`${failure.errorMessage ?? "An error occurred."}\n\nThis response cannot be retried after compaction. Send a new message to continue.`);
+			throw new ChatInputError(`${failure.errorMessage ?? "出错了。"}\n\nThis response cannot be retried after compaction. Send a new message to continue.`);
 		}
 		throw new ChatInputError("retry input requires a failed turn to retry");
 	}

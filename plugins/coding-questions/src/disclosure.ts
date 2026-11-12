@@ -28,7 +28,7 @@ export function mountDisclosure(container: HTMLElement, kind: "test-output" | "m
     if (disposed || signal.aborted) return;
     if (open) { close(); return; }
     open = true;
-    button.textContent = `Hide ${label.toLowerCase()}`;
+    button.textContent = `收起${label}`;
     button.setAttribute("aria-expanded", "true");
     root.append(body);
     try {

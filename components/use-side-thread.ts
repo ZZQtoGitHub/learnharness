@@ -111,10 +111,10 @@ export function useSideThread(chatId: string, messages: readonly LhMessage[], ge
 		if (token !== connection.current?.token) { await response.body?.cancel(); return; }
 		if (!response.ok) {
 			const body = await response.json().catch(() => null) as { error?: string | { message?: string } } | null;
-			throw new Error(typeof body?.error === "string" ? body.error : body?.error?.message ?? "The side conversation could not be reached.");
+			throw new Error(typeof body?.error === "string" ? body.error : body?.error?.message ?? "无法连接旁支讨论。");
 		}
 		const reader = response.body?.getReader();
-		if (!reader) throw new Error("The side answer had no response stream.");
+		if (!reader) throw new Error("旁支回答没有响应流。");
 		const decoder = new TextDecoder(); let buffer = ""; let terminal = false;
 		const apply = (line: string) => {
 			if (!line.trim() || token !== connection.current?.token) return;
@@ -128,7 +128,7 @@ export function useSideThread(chatId: string, messages: readonly LhMessage[], ge
 				revision.current++; // an older GET must not rewind a newer stream tail
 				dispatch({ type: "text", threadId, text: event.text ?? "" });
 			}
-			else if (event.type === "error") throw new Error(event.error ?? "The side answer failed.");
+			else if (event.type === "error") throw new Error(event.error ?? "旁支回答失败。");
 		};
 		try {
 			for (;;) {
@@ -138,7 +138,7 @@ export function useSideThread(chatId: string, messages: readonly LhMessage[], ge
 				let newline: number;
 				while ((newline = buffer.indexOf("\n")) >= 0) { apply(buffer.slice(0, newline)); buffer = buffer.slice(newline + 1); }
 			}
-			if (!terminal && token === connection.current?.token) throw new Error("The side answer disconnected. Reopen the conversation to reconnect.");
+			if (!terminal && token === connection.current?.token) throw new Error("旁支回答已断开。重新打开该讨论即可重新连接。");
 		} finally { reader.releaseLock(); }
 	}, [adopt]);
 

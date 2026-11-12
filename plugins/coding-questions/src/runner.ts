@@ -7,7 +7,7 @@ const TIMEOUT_MS = 30_000;
 const OUTPUT_LIMIT = 64 * 1024;
 
 function checkAbort(signal?: AbortSignal): void {
-  if (signal?.aborted) throw new DOMException("Test run aborted", "AbortError");
+  if (signal?.aborted) throw new DOMException("测试运行已中止", "AbortError");
 }
 
 function capture() {
@@ -71,7 +71,7 @@ async function observeProcess(
     });
   } catch (error) {
     checkAbort(signal);
-    return result("error", null, `Could not launch test process: ${errorMessage(error)}`);
+    return result("error", null, `无法启动测试进程：${errorMessage(error)}`);
   }
 
   return new Promise<CodingTestResult>((resolve, reject) => {
@@ -112,10 +112,10 @@ async function observeProcess(
         try {
           await terminate();
           checkAbort(signal);
-          if (timedOut) resolve(result("error", exitCode, "Test process exceeded the 30 second timeout"));
-          else if (launchError) resolve(result("error", null, `Could not launch test process: ${launchError.message}`));
-          else if (exitSignal !== null) resolve(result("error", exitCode, `Test process terminated by signal ${exitSignal}`));
-          else if (exitCode === null) resolve(result("error", null, "Test process exited without an exit code"));
+          if (timedOut) resolve(result("error", exitCode, "测试进程超过 30 秒超时上限"));
+          else if (launchError) resolve(result("error", null, `无法启动测试进程：${launchError.message}`));
+          else if (exitSignal !== null) resolve(result("error", exitCode, `测试进程被信号 ${exitSignal} 终止`));
+          else if (exitCode === null) resolve(result("error", null, "测试进程退出但没有退出码"));
           else resolve(result(exitCode === 0 ? "passed" : "failed", exitCode));
         } catch (error) { reject(error); }
         finally { signal?.removeEventListener("abort", onAbort); }
@@ -176,12 +176,12 @@ export async function runTests({ dataDirectory, questionId, answer, tests, signa
 }): Promise<CodingTestResult> {
   checkAbort(signal);
   if (!questionId || questionId === "." || questionId === ".." || /[/\\\0]/u.test(questionId) || path.isAbsolute(questionId)) {
-    throw new Error("questionId must be a single safe path segment");
+    throw new Error("questionId 必须是单个安全的路径片段");
   }
   const runsDirectory = path.resolve(dataDirectory, "test-runs");
   const questionDirectory = path.resolve(runsDirectory, questionId);
   if (path.dirname(questionDirectory) !== runsDirectory) {
-    throw new Error("questionId must be a single safe path segment");
+    throw new Error("questionId 必须是单个安全的路径片段");
   }
   let workspace: string | undefined;
   try {

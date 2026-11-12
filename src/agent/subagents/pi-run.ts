@@ -7,6 +7,7 @@ import { workerRequestStream } from "../worker-request-admission.ts";
 import { providerEventObserver } from "../provider-events.ts";
 import { backgroundCaptureStream, createBackgroundCapture } from "../background-capture.ts";
 import type { ModelRole } from "../../../config.ts";
+import { withLanguage } from "../language.ts";
 
 /**
  * The shared sub-agent runner (docs/archive/pi-engine-swap.md §6): one helper every
@@ -87,7 +88,7 @@ export async function runSubagent(tools: AgentTool<any, any>[], opts: SubagentRu
 		// One unsaved conversation per invocation, stable through every turn.
 		sessionId,
 		initialState: {
-			systemPrompt: opts.systemPrompt,
+			systemPrompt: withLanguage(opts.systemPrompt),
 			model: engine.model,
 			thinkingLevel: engine.level,
 			tools,

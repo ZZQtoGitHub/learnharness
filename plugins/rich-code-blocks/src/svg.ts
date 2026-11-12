@@ -36,10 +36,10 @@ function viewBox(value: string): string | undefined {
  */
 export function sanitizeSvg(source: string, label: string, language?: Language): SVGSVGElement {
   checkSvgSize(source);
-  if (/<!DOCTYPE|<!ENTITY/i.test(source)) throw new Error("SVG document declarations are not supported.");
+  if (/<!DOCTYPE|<!ENTITY/i.test(source)) throw new Error("不支持 SVG 文档声明。");
   const parsed = new DOMParser().parseFromString(source, "image/svg+xml");
   if (parsed.querySelector("parsererror") || parsed.documentElement.localName !== "svg" || parsed.documentElement.namespaceURI !== NS) {
-    throw new Error("The renderer did not produce a valid SVG.");
+    throw new Error("渲染器未生成合法的 SVG。");
   }
   const prefix = `rich-code-blocks-${++serial}-`;
   const ids = new Map<string, string>();
@@ -128,7 +128,7 @@ export function sanitizeSvg(source: string, label: string, language?: Language):
   if (!svg.getAttribute("viewBox")) {
     const width = parseFloat(svg.getAttribute("width") ?? "");
     const height = parseFloat(svg.getAttribute("height") ?? "");
-    if (!(Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0)) throw new Error("SVG dimensions are missing or invalid.");
+    if (!(Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0)) throw new Error("SVG 尺寸缺失或无效。");
     svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
   }
   // Keep only a natural width; CSS derives height from viewBox when fitting.
@@ -167,12 +167,12 @@ function checkReferenceBudget(svg: SVGSVGElement): void {
   function size(node: Node): number {
     const cached = memo.get(node);
     if (cached !== undefined) return cached;
-    if (visiting.has(node)) throw new Error("Cyclic SVG references are not supported.");
+    if (visiting.has(node)) throw new Error("不支持循环引用的 SVG。");
     visiting.add(node);
     let cost = node.nodeType === Node.TEXT_NODE ? encoder.encode(node.textContent ?? "").byteLength : 0;
     const add = (amount: number) => {
       cost = Math.min(SVG_LIMIT + 1, cost + amount);
-      if (cost > SVG_LIMIT) throw new Error("SVG references exceed the 2 MiB expanded output limit.");
+      if (cost > SVG_LIMIT) throw new Error("SVG 引用展开后超出 2 MiB 输出上限。");
     };
     if (node.nodeType === Node.ELEMENT_NODE) {
       const element = node as Element;

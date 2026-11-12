@@ -45,10 +45,10 @@ function segmentPathFrom(segments: string[]): string | null {
 export async function PUT(request: Request, ctx: { params: Promise<{ segment: string[] }> }) {
 	const { segment } = await ctx.params;
 	const path = segmentPathFrom(segment);
-	if (!path) return Response.json({ error: "invalid segment path" }, { status: 400 });
+	if (!path) return Response.json({ error: "片段路径无效" }, { status: 400 });
 	const body = (await request.json().catch(() => null)) as { text?: unknown } | null;
 	if (!body || typeof body.text !== "string") {
-		return Response.json({ error: "body must be {text: string}" }, { status: 400 });
+		return Response.json({ error: "请求体必须是 {text: string}" }, { status: 400 });
 	}
 	if (!new Set(allSegmentPaths()).has(path)) {
 		return Response.json(
@@ -63,7 +63,7 @@ export async function PUT(request: Request, ctx: { params: Promise<{ segment: st
 export async function DELETE(_request: Request, ctx: { params: Promise<{ segment: string[] }> }) {
 	const { segment } = await ctx.params;
 	const path = segmentPathFrom(segment);
-	if (!path) return Response.json({ error: "invalid segment path" }, { status: 400 });
+	if (!path) return Response.json({ error: "片段路径无效" }, { status: 400 });
 	// Clear the record's switch FIRST (crash between the two leaves "off +
 	// file" — valid — never an orphaned ON), then unlink the file.
 	const record = readSettingsRecord();

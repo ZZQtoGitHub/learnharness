@@ -42,7 +42,7 @@ function nativeResult(occurrence: PluginQuestionOccurrence, details: PluginQuest
 function requireCurrent(messages: readonly LhMessage[], input: { questionId?: string; occurrence: PluginQuestionOccurrence }): PluginQuestionSnapshot {
 	const pending = pendingPluginQuestionOf(messages);
 	if (!pending || input.questionId !== pending.questionId || !samePluginQuestionOccurrence(input.occurrence, pending.occurrence))
-		throw new ChatInputError("This question is no longer pending. Sync the saved session before trying again.");
+		throw new ChatInputError("该问题已不再待答。请先同步已保存的会话再重试。");
 	return pending;
 }
 
@@ -55,16 +55,16 @@ function hasRequiredGrader(snapshot: PluginQuestionSnapshot, definition: NativeP
 function gradingOutcome(value: unknown): PluginQuestionGradingOutcome {
 	let copy;
 	try { copy = clonePluginQuestionJson(value); }
-	catch { throw new ChatInputError("Invalid question grading outcome"); }
+	catch { throw new ChatInputError("问题批改结果无效"); }
 	if (!copy || typeof copy !== "object" || Array.isArray(copy) || Object.keys(copy).length !== 1 ||
 		!(Object.hasOwn(copy, "result") || (Object.hasOwn(copy, "error") && typeof copy.error === "string")))
-		throw new ChatInputError("Invalid question grading outcome");
+		throw new ChatInputError("问题批改结果无效");
 	return freezePluginQuestionValue(copy) as PluginQuestionGradingOutcome;
 }
 function gradingError(error: unknown): string {
 	// A plugin may throw any value, including an object with a throwing message getter.
 	try { if (error instanceof Error && typeof error.message === "string") return error.message; } catch { /* safe generic below */ }
-	return "An error occurred.";
+	return "出错了。";
 }
 
 export interface PreparedPluginQuestionSubmission {
@@ -79,28 +79,28 @@ export function preparePluginQuestionSubmission(record: { id: string; messages: 
 	const snapshot = requireCurrent(record.messages, input);
 	const savedContract = JSON.stringify(snapshot), chatId = record.id;
 	const resolution = resolve(snapshot.pluginId, snapshot.typeId, snapshot.contractVersion);
-	if (resolution.status !== "available" || !hasRequiredGrader(snapshot, resolution.definition)) throw new ChatInputError("Question unavailable");
+	if (resolution.status !== "available" || !hasRequiredGrader(snapshot, resolution.definition)) throw new ChatInputError("问题当前不可用");
 	const { signal: activationSignal, requireActive } = resolution;
 	const gradeAnswer = resolution.definition.gradeAnswer;
 	const requireAuthority = (signal?: AbortSignal) => {
 		// This exact captured closure proves activation AND registration identity, even after re-registration.
 		try { requireActive.call(resolution); }
-		catch { throw new ChatInputError("Question unavailable"); }
-		if (activationSignal.aborted || signal?.aborted) throw new ChatInputError("Question unavailable");
+		catch { throw new ChatInputError("问题当前不可用"); }
+		if (activationSignal.aborted || signal?.aborted) throw new ChatInputError("问题当前不可用");
 	};
 	requireAuthority();
 	const readingApplicable = snapshot.variant === "teach" && snapshot.input.type === "check";
 	let images: PluginSubmissionImages | undefined;
 	try { images = input.images === undefined ? undefined : validatePluginSubmissionImages(input.images); }
-	catch (error) { throw new ChatInputError(error instanceof Error ? error.message : "Invalid submitted images"); }
+	catch (error) { throw new ChatInputError(error instanceof Error ? error.message : "提交的图片无效"); }
 	if (Object.hasOwn(input, "thinking") && (!snapshot.showThinking || typeof input.thinking !== "string"))
-		throw new ChatInputError("Thinking is not applicable to this question");
+		throw new ChatInputError("该问题不适用思考内容");
 	if (Object.hasOwn(input, "readingThinking") && (!readingApplicable || typeof input.readingThinking !== "string"))
-		throw new ChatInputError("Reading thinking is not applicable to this question");
+		throw new ChatInputError("该问题不适用阅读思考内容");
 	if (!snapshot.showThinking && images?.thinking?.length)
-		throw new ChatInputError("Thinking images are not applicable to this question");
+		throw new ChatInputError("该问题不适用思考图片");
 	if (!readingApplicable && images?.readingThinking?.length)
-		throw new ChatInputError("Reading thinking images are not applicable to this question");
+		throw new ChatInputError("该问题不适用阅读思考图片");
 	const answer = validatePluginQuestionAnswer(snapshot, { chatId: record.id, answer: input.answer }, resolution.definition);
 	if (!answer.ok) throw new ChatInputError(answer.problems.join("\n"));
 	requireAuthority();
@@ -146,8 +146,8 @@ export function preparePluginQuestionSubmission(record: { id: string; messages: 
 			requireAuthority(gradingSignal);
 			const pending = requireCurrent(current.messages, snapshot);
 			if (current.id !== chatId || JSON.stringify(pending) !== savedContract)
-				throw new ChatInputError("This question changed. Sync the saved session before trying again.");
-			if (requiresGrading(snapshot) && !gradingSettled) throw new ChatInputError("Question grading has not completed");
+				throw new ChatInputError("该问题已变化。请先同步已保存的会话再重试。");
+			if (requiresGrading(snapshot) && !gradingSettled) throw new ChatInputError("问题批改尚未完成");
 			const outcome = requiresGrading(snapshot) ? gradingOutcome(grading) : undefined;
 			const envelope: PluginQuestionAnswer = { ...accepted,
 				...(outcome ? { grading: outcome } : {}), answeredAt: new Date().toISOString() };
@@ -159,7 +159,7 @@ export function preparePluginQuestionSubmission(record: { id: string; messages: 
 /** Historical synchronous callers can only submit saved ungraded questions. */
 export function preparePluginQuestionAnswer(record: { id: string; messages: LhMessage[] }, input: PluginQuestionAnswerInput, resolve: QuestionTypeResolver): LhMessage[] {
 	const prepared = preparePluginQuestionSubmission(record, input, resolve);
-	if (prepared.grade) throw new ChatInputError("This question requires grading before acceptance");
+	if (prepared.grade) throw new ChatInputError("该问题需先完成批改才能接受");
 	return prepared.finish(record);
 }
 
@@ -195,7 +195,7 @@ export function preparePluginQuestionDismissal(record: { messages: LhMessage[] }
 	const unreadable = unreadablePending(record.messages);
 	if (!unreadable || !samePluginQuestionOccurrence(unreadable.occurrence, input.occurrence) ||
 		(input.questionId !== undefined && input.questionId !== unreadable.questionId))
-		throw new ChatInputError("This question is no longer pending. Sync the saved session before trying again.");
+		throw new ChatInputError("该问题已不再待答。请先同步已保存的会话再重试。");
 	return [cancellation(unreadable.occurrence, unreadable.questionId, "dismissed")];
 }
 

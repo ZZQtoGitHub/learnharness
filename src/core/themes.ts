@@ -92,7 +92,7 @@ export function parseThemeFile(raw: unknown): { ok: true; theme: ThemeFile } | {
 	if (!themeIdFromName(r.name)) return { ok: false, error: "name must contain a letter or digit" };
 	if (r.mode !== "dark" && r.mode !== "light") return { ok: false, error: 'mode must be "dark" or "light"' };
 	if (!r.colors || typeof r.colors !== "object" || Array.isArray(r.colors)) {
-		return { ok: false, error: "colors must be an object" };
+		return { ok: false, error: "colors 必须是对象" };
 	}
 	const c = r.colors as Record<string, unknown>;
 	const colors = {} as ThemeColors;

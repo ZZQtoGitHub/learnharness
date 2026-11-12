@@ -354,7 +354,7 @@ function PluginDialog({ title, content, onClose, runtime, opener }: PluginDialog
 		<div data-plugin-ui-dialog-scroll="" className="min-h-0 overflow-y-auto p-5">
 			<PluginContent content={content} runtime={runtime} />
 		</div>
-		<button type="button" aria-label="Close dialog" title="Close" onClick={close}
+		<button type="button" aria-label="关闭对话框" title="关闭" onClick={close}
 			className="absolute right-2 top-2 z-10 size-7 rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
 			<svg viewBox="0 0 16 16" className="mx-auto size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5">
 				<path d="M4 4l8 8M12 4l-8 8" />

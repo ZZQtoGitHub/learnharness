@@ -69,7 +69,7 @@ function subscribeUserThinking(fn: (open: boolean) => void): () => void {
 }
 
 export function ThinkingBlock({
-	label = "YOUR THINKING",
+	label = "你的思考",
 	text,
 	images,
 	testId,

@@ -24,14 +24,14 @@ export async function POST(req: Request) {
 	try {
 		body = await req.json();
 	} catch {
-		return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+		return Response.json({ error: "JSON 请求体无效" }, { status: 400 });
 	}
 	const { kind, id } = (body ?? {}) as { kind?: string; id?: string };
 	if ((kind !== "job" && kind !== "plugin-worker" && kind !== "extraction" && kind !== "turn") || typeof id !== "string" || id === "") {
 		return Response.json({ error: 'Body must be {kind: "job"|"plugin-worker"|"extraction"|"turn", id: string}' }, { status: 400 });
 	}
 	if (!/^[A-Za-z0-9:_-]+$/.test(id)) {
-		return Response.json({ error: "Invalid id" }, { status: 400 });
+		return Response.json({ error: "id 无效" }, { status: 400 });
 	}
 
 	if (kind === "job") {

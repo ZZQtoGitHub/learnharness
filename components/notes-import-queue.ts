@@ -8,13 +8,13 @@ const hiddenInFolder = (file: File): boolean => file.webkitRelativePath.split("/
 /** From the last dot of the file name, lower-cased. A dot that starts the name (".DS_Store") or ends it ("notes.") is not an extension. */
 const extensionLabel = (name: string): string => {
 	const dot = name.lastIndexOf(".");
-	return dot > 0 && dot < name.length - 1 ? name.slice(dot).toLowerCase() : "no extension";
+	return dot > 0 && dot < name.length - 1 ? name.slice(dot).toLowerCase() : "无扩展名";
 };
 /** One line per reason for a whole pick, so a big folder cannot flood the error list. */
 const unsupportedSummary = (extensions: readonly string[]): string =>
-	`Skipped ${extensions.length} ${extensions.length === 1 ? "file that isn't" : "files that aren't"} text, Markdown, or PDF (${[...new Set(extensions)].join(", ")}).`;
+	`已跳过 ${extensions.length} 个文件（仅支持文本、Markdown 或 PDF，不支持：${[...new Set(extensions)].join("、")}）。`;
 const unsafeSummary = (count: number): string =>
-	`Skipped ${count} ${count === 1 ? "file with a name" : "files with names"} the import can't use (e.g. a ':' in the name).`;
+	`已跳过 ${count} 个文件名无法用于导入的文件（例如名称中含“：”）。`;
 export interface ImportQueueSnapshot {
 	importing: boolean;
 	errors: string[];
@@ -47,14 +47,14 @@ export function createNotesImportQueue(post: (files: readonly File[]) => Promise
 			void (async () => {
 				try {
 					const [r] = await send(file);
-					if (!r) throw new Error("Invalid import response. Check the graph before retrying.");
+					if (!r) throw new Error("导入响应无效。重试前请检查图谱。");
 					if (!r.ok) {
 						const details = [r.provider, r.missing?.join(", "), r.slots?.join(", ")].filter(Boolean);
-						failures.set(index, `${r.filePath}: ${r.error}${r.code ? `\n${[r.code, ...details].join(" — ")}` : ""}`);
-					} else if (r.notice) notices.set(index, `${r.filePath}: ${r.notice}`);
+						failures.set(index, `${r.filePath}：${r.error}${r.code ? `\n${[r.code, ...details].join(" — ")}` : ""}`);
+					} else if (r.notice) notices.set(index, `${r.filePath}：${r.notice}`);
 				} catch (error) {
 					// Never retry an ambiguous response: the merge may have committed.
-					failures.set(index, `${notesPath(file)}: ${error instanceof Error ? error.message : String(error)}`);
+					failures.set(index, `${notesPath(file)}：${error instanceof Error ? error.message : String(error)}`);
 				} finally {
 					active--;
 					pump();
@@ -77,7 +77,7 @@ export function createNotesImportQueue(post: (files: readonly File[]) => Promise
 				if (file.webkitRelativePath && hiddenInFolder(file)) continue;
 				if (!validNotesPath(path, file.name)) unsafe.push(index);
 				else if (!IMPORT_EXTENSIONS.test(file.name)) unsupported.push({ index, extension: extensionLabel(file.name) });
-				else if (file.size > MAX_IMPORT_BYTES) failures.set(index, `${path}: Too big. Max 25 MB.`);
+				else if (file.size > MAX_IMPORT_BYTES) failures.set(index, `${path}：文件过大，最大 25 MB。`);
 				else pending.push({ file, index });
 			}
 			if (unsafe.length > 0) failures.set(unsafe[0]!, unsafeSummary(unsafe.length));

@@ -24,6 +24,7 @@ import { PATHS } from "../../config.ts";
 import type { SideModelTurn } from "../core/side-chat.ts";
 import type { PiEngine } from "./models.ts";
 import { readPromptOverride } from "./prompt-segments.ts";
+import { withLanguage } from "./language.ts";
 
 const PROMPTS_DIR = path.join(PATHS.root, "src", "agent", "prompts");
 const SIDE_BASE = path.join(PROMPTS_DIR, "side-chat", "00-base.md");
@@ -108,7 +109,7 @@ export async function streamSideAnswer(opts: {
 	const capture = createBackgroundCapture({ role: "sideQuestion", runId: opts.runId ?? randomUUID(), sourceId: opts.chatId });
 	const providerEvents = opts.chatId ? providerEventObserver(opts.chatId, "sideQuestion") : undefined;
 	try {
-		const stream = backgroundCaptureStream(opts.engine.streamFn, capture)(opts.engine.model, normalizeContext({ systemPrompt: opts.instructions, messages, tools: [] }), {
+		const stream = backgroundCaptureStream(opts.engine.streamFn, capture)(opts.engine.model, normalizeContext({ systemPrompt: withLanguage(opts.instructions), messages, tools: [] }), {
 			signal: opts.signal,
 			reasoning: opts.engine.level === "off" ? undefined : opts.engine.level,
 			...(providerEvents ? { onProviderStreamEvent: providerEvents } : {}),
@@ -128,7 +129,7 @@ export async function streamSideAnswer(opts: {
 				failure = new Error(event.error.errorMessage ?? event.reason);
 				const partial = textOf(event.error) || text;
 				if (event.reason === "aborted") return { text: partial, usage: event.error.usage, outcome: "aborted" };
-				return { text: partial, usage: event.error.usage, outcome: "error", errorMessage: event.error.errorMessage ?? "The model call failed." };
+				return { text: partial, usage: event.error.usage, outcome: "error", errorMessage: event.error.errorMessage ?? "模型调用失败。" };
 			}
 		}
 		failure = new Error("The model stream ended without a result.");

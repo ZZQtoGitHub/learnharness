@@ -141,32 +141,32 @@ export function StatsBar({
 						className="absolute bottom-full left-1/2 mb-1.5 w-72 -translate-x-1/2 rounded-xl border bg-card p-3 text-xs shadow-xl"
 					>
 						<div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-							Session stats
+							会话统计
 						</div>
 						<div className="flex flex-col gap-1 text-muted-foreground">
 							<div className="flex justify-between gap-2">
-								<span>Context (last call)</span>
+								<span>上下文（最近一次调用）</span>
 								<span className="tabular-nums text-card-foreground">
 									{contextLabel}
 								</span>
 							</div>
 							{selectedModel?.startsWith(`${CLAUDE_CODE_PROVIDER}:`) && (
-								<p>Window reported by Claude Code; may be lower for auto-compaction.</p>
+								<p>窗口由 Claude Code 上报；启用上下文压缩时可能更低。</p>
 							)}
 							<div className="flex justify-between gap-2">
-								<span>{subscription ? "Usage" : "Total cost"}</span>
+								<span>{subscription ? "用量" : "总费用"}</span>
 								<span className="tabular-nums text-card-foreground">{costLabel}</span>
 							</div>
 							{cacheHitRate !== null && (
 								<div data-testid="stats-cache-hit-rate" className="flex justify-between gap-2">
-									<span>Cache hit rate</span>
+									<span>缓存命中率</span>
 									<span className="tabular-nums text-card-foreground">{(cacheHitRate * 100).toFixed(1)}%</span>
 								</div>
 							)}
-							{providers.includes("ChatGPT") && <a href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer" className="underline underline-offset-2">Manage ChatGPT usage</a>}
+							{providers.includes("ChatGPT") && <a href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer" className="underline underline-offset-2">管理 ChatGPT 用量</a>}
 							{unpriced > 0 && (
 								<div className="flex justify-between gap-2">
-									<span>Unpriced turns</span>
+									<span>未定价的轮次</span>
 									<span className="tabular-nums text-card-foreground">{unpriced}</span>
 								</div>
 							)}
@@ -174,7 +174,7 @@ export function StatsBar({
 						{turns.length > 0 && (
 							<>
 								<div className="mb-1 mt-2.5 border-t pt-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-									Turns
+									轮次
 								</div>
 								<ul className="flex max-h-56 flex-col gap-1 overflow-y-auto">
 									{turns.map((turn, i) => {
@@ -185,7 +185,7 @@ export function StatsBar({
 													#{i + 1} · {prettyModel(turn.model, true)}
 												</span>
 												<span className="flex shrink-0 items-center gap-2 tabular-nums text-card-foreground">
-													<span className="text-muted-foreground">{turn.steps.length} steps</span>
+													<span className="text-muted-foreground">{turn.steps.length} 步</span>
 													<span>{turn.model.startsWith(`${CLAUDE_CODE_PROVIDER}:`) ? "CLI" : subscriptionLabel(turn.model) ?? (c === null ? "—" : formatUsd(c))}</span>
 												</span>
 											</li>

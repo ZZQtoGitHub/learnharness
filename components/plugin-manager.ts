@@ -224,7 +224,7 @@ export class PluginFrontendManager {
 	private async json(url: string, init?: RequestInit): Promise<unknown> {
 		const response = await this.host.fetch(url, init);
 		const body = await response.json();
-		if (!response.ok) throw new Error((body as { error?: string }).error ?? `Request failed (${response.status})`);
+		if (!response.ok) throw new Error((body as { error?: string }).error ?? `请求失败（${response.status}）`);
 		return body;
 	}
 	async reload(clearError = true) {

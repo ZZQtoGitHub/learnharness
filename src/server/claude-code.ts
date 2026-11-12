@@ -23,8 +23,8 @@ export async function claudeCodeInstallationResponse(
 		|| request.headers.get("x-learnharness-claude-code") !== "1"
 		|| request.headers.get("sec-fetch-site") === "cross-site"
 		|| (supplied !== null && supplied !== origin)) {
-		return Response.json({ error: "Claude Code checks require a same-origin LearnHarness request." }, { status: 403, headers });
+		return Response.json({ error: "Claude Code 检查需要来自同源的 LearnHarness 请求。" }, { status: 403, headers });
 	}
-	if (!enabled()) return Response.json({ error: "Claude Code is disabled." }, { status: 403, headers });
+	if (!enabled()) return Response.json({ error: "Claude Code 已停用。" }, { status: 403, headers });
 	return Response.json(await inspect(), { headers });
 }

@@ -322,7 +322,7 @@ it("lazily loads the real Chains interface as one nonmodal main-pane view, prese
 		assert.match(overlay()!.className, /absolute inset-0/);
 		assert.equal(document.querySelector("#sidebar")!.children.length, 0);
 		assert.ok(overlay()!.querySelector('[data-testid="chain-table"]'));
-		assert.equal(overlay()!.querySelector('[aria-label="Open sidebar"]'), null);
+		assert.equal(overlay()!.querySelector('[aria-label="打开侧边栏"]'), null);
 		assert.ok(overlay()!.querySelector('header.lh-native-window-clearance'));
 		assert.ok(overlay()!.querySelector('[data-testid="add-source-folder"]'));
 		assert.ok(overlay()!.querySelector('button[title="Rename"]'));
@@ -919,7 +919,7 @@ it("picker-only native clearance tracks real pane position through resize, scrol
 		left = 72; zoom(); assert.equal(header.style.getPropertyValue("--lh-header-left"), "72px");
 		left = 0; window.dispatchEvent(new f.dom.window.Event("scroll"));
 		assert.equal(header.style.getPropertyValue("--lh-header-left"), "0px");
-		assert.equal(header.querySelector('[aria-label="Open sidebar"]'), null);
+		assert.equal(header.querySelector('[aria-label="打开侧边栏"]'), null);
 		const css = fs.readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 		assert.match(css, /\[data-lh-platform="darwin"\] \.lh-native-window-clearance\s*\{\s*padding-left: calc\(0\.75rem \+ max\(0px, calc\(92px \/ var\(--lh-zoom\) - var\(--lh-header-left, 0px\)\)\)\);/);
 		assert.match(css, /--lh-wco-right: max\(0px, calc\(100vw - env\(titlebar-area-x, 0px\) - env\(titlebar-area-width, 100vw\)\)\);/);

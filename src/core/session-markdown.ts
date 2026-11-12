@@ -83,7 +83,7 @@ function toolResultBody(result: ToolResultMessage, ctx?: MarkdownContext): { hea
 			const annotation = readPluginQuestionMessageAnnotation(message, contentIndex);
 			return annotation.status !== "absent" && pluginQuestionResultMatches(result as LhMessage, { messageId: message.id, contentIndex, toolCallId: block.id, toolName: block.name }, annotation);
 		}));
-		if (!bound) return { heading: "Question", body: ["Question unavailable"] };
+		if (!bound) return { heading: "Question", body: ["问题不可用"] };
 		if (cancellation) return { heading: "Question", body: ["The question was cancelled without a learner answer."] };
 		const body = [`**Answer:** ${typeof pluginAnswer!.answer === "string" ? pluginAnswer!.answer : JSON.stringify(pluginAnswer!.answer)}`];
 		if (pluginAnswer!.thinking !== undefined) body.push(`**Thinking:** ${pluginAnswer!.thinking}`);

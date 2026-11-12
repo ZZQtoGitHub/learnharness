@@ -71,7 +71,7 @@ test("busy grading confirmation preserves drafts, sends just /dismiss and ignore
 	await Promise.race([started, sending.then(() => { throw new Error("The grading submission never reached POST"); })]); assert.equal(model.readyRef, false); assert.equal(model.status, "submitted");
 	const target = capturePluginQuestionDismissal(model.getState().canonicalMessages)!;
 	confirmPluginQuestionDismissal(target, { ...model.getState(), stop: () => model.stop(), dismissPluginQuestion: (occurrence, questionId) => model.dismissPluginQuestion(occurrence, questionId) });
-	resolvePost(Response.json({ error: "Question unavailable" }, { status: 400 })); await sending;
+	resolvePost(Response.json({ error: "问题不可用" }, { status: 400 })); await sending;
 	await Promise.resolve(); await Promise.resolve();
 	assert.equal(calls.filter(url => url.endsWith("/dismiss")).length, 1);
 	assert.equal(calls.includes("/api/activity/abort"), false, "the server performs adjacent park+Stop");

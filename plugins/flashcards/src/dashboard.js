@@ -1,5 +1,5 @@
 // Library-wide scheduling summaries, rendered only from the backend snapshot.
-const states = [['new', 'New'], ['learning', 'Learning'], ['review', 'Review'], ['relearning', 'Relearning']];
+const states = [['new', '新卡'], ['learning', '学习中'], ['review', '复习中'], ['relearning', '重学中']];
 const svgNamespace = 'http://www.w3.org/2000/svg';
 const count = value => Number.isFinite(value) && value > 0 ? value : 0;
 function element(tag, className, text) {
@@ -27,13 +27,13 @@ function dateLabels(day) {
 }
 
 export function mountDashboard({ container, signal }) {
-  const root = element('section', 'fc-dashboard'); root.setAttribute('aria-label', 'Spaced repetition');
-  const heading = element('h2', 'fc-dashboard-heading', 'Spaced repetition');
-  const loading = element('p', 'fc-muted', 'Loading statistics…'); loading.setAttribute('role', 'status');
-  const stateTitle = element('h3', '', 'Current states');
+  const root = element('section', 'fc-dashboard'); root.setAttribute('aria-label', '间隔重复');
+  const heading = element('h2', 'fc-dashboard-heading', '间隔重复');
+  const loading = element('p', 'fc-muted', '正在加载统计数据…'); loading.setAttribute('role', 'status');
+  const stateTitle = element('h3', '', '当前状态');
   const stateBar = element('div', 'fc-state-bar'); stateBar.setAttribute('aria-hidden', 'true');
   const legend = element('ul', 'fc-state-legend');
-  const stateCaption = element('p', 'fc-chart-caption', 'Active propositions with at least one cue.');
+  const stateCaption = element('p', 'fc-chart-caption', '至少有一个记忆项的有效命题。');
   const charts = element('div', 'fc-chart-grid');
   root.append(heading, loading, stateTitle, stateBar, legend, stateCaption, charts);
   const stateNodes = states.map(([key, label]) => {
@@ -51,8 +51,8 @@ export function mountDashboard({ container, signal }) {
     scroll.append(svg); figure.append(chartTitle, scroll, element('figcaption', 'fc-chart-caption', caption)); charts.append(figure);
     return { title, svg };
   }
-  const due = chart('due', 'Scheduled due', 'Current scheduled due dates.');
-  const activity = chart('activity', 'Scheduled reviews', 'Scheduled review ratings recorded each day.');
+  const due = chart('due', '计划到期', '当前的计划到期日期。');
+  const activity = chart('activity', '计划复习', '每天记录的计划复习评分。');
   let disposed = false;
   function renderChart(chart, values, kind, width) {
     const rows = Array.isArray(values) ? values : [];
@@ -62,13 +62,13 @@ export function mountDashboard({ container, signal }) {
     const descriptions = [];
     for (const [index, row] of rows.entries()) {
       const labels = dateLabels(row.day);
-      const special = kind === 'due' && row.day === null ? 'Overdue' : (kind === 'due' && index === 1) || (kind === 'activity' && index === rows.length - 1) ? 'Today' : '';
+      const special = kind === 'due' && row.day === null ? '逾期' : (kind === 'due' && index === 1) || (kind === 'activity' && index === rows.length - 1) ? '今天' : '';
       const label = special || (kind === 'due' ? labels.weekday : labels.date);
       const detail = special || labels.full, value = count(row.count);
       descriptions.push(`${detail}: ${value}`);
       const group = svgElement('g', { 'data-day': row.day ?? 'overdue' });
       const x = step * (index + .5), height = Math.max(1, value / maximum * 104);
-      const bucket = kind === 'activity' ? 'activity' : special === 'Overdue' ? 'overdue' : special === 'Today' ? 'today' : 'future';
+      const bucket = kind === 'activity' ? 'activity' : special === '逾期' ? 'overdue' : special === '今天' ? 'today' : 'future';
       // Palette hooks belong to bars, never their groups or foreground labels.
       group.append(svgElement('rect', { class: 'fc-chart-bar', 'data-bucket': bucket, x: x - step * .3, y: baseline - height, width: step * .6, height, fill: 'currentColor', opacity: '.6', rx: 2 }));
       group.append(svgElement('text', { class: 'fc-chart-count', x, y: baseline - height - 6, 'text-anchor': 'middle', 'font-size': 12, fill: 'currentColor' }, String(value)));
@@ -77,7 +77,7 @@ export function mountDashboard({ container, signal }) {
       if (kind === 'due' && !special) dateText.append(svgElement('tspan', { class: 'fc-chart-date', x, dy: 15 }, labels.date));
       group.append(dateText); chart.svg.append(group);
     }
-    const accessible = `${chart.title}: ${descriptions.length ? descriptions.join('; ') : 'No data available.'}`;
+    const accessible = `${chart.title}: ${descriptions.length ? descriptions.join('；') : '暂无数据。'}`;
     chart.svg.setAttribute('aria-label', accessible);
   }
   function update(statistics) {

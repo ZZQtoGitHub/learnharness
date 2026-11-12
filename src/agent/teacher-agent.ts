@@ -6,6 +6,7 @@ import type { Usage } from "@earendil-works/pi-ai";
 import { PATHS } from "../../config.ts";
 import { APP_IDENTITY, piEngineFor, type PiEngine } from "./models.ts";
 import { effectivePromptSegments } from "./prompt-segments.ts";
+import { withLanguage } from "./language.ts";
 import {
 	askUserQuestionTool,
 	createProberTools,
@@ -86,11 +87,13 @@ export const CONVERSATION_TOOL_NAMES = Object.freeze([
  *  chat/job machinery. */
 export function composeInstructions(kind: AgentKind, switches?: Record<string, boolean>): string {
 	const segments = effectivePromptSegments(kind, switches ?? {});
-	return segments
-		.map((s) => (s.enabled ? s.overrideText! : s.sourceText))
-		.map((t) => t.trim())
-		.filter(Boolean)
-		.join("\n\n---\n\n");
+	return withLanguage(
+		segments
+			.map((s) => (s.enabled ? s.overrideText! : s.sourceText))
+			.map((t) => t.trim())
+			.filter(Boolean)
+			.join("\n\n---\n\n"),
+	);
 }
 
 // The switch-free source composition, cached per kind (module-load once).

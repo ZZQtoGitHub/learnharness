@@ -31,7 +31,7 @@ function StaticMarkdownImage({ className, src, alt, node, onLoad, onError, ...pr
 				src={src}
 				{...props}
 			/>
-			{fallback && <span className="text-muted-foreground text-xs italic" data-streamdown="image-fallback">Image not available</span>}
+			{fallback && <span className="text-muted-foreground text-xs italic" data-streamdown="image-fallback">图片不可用</span>}
 			<div className="pointer-events-none absolute inset-0 hidden rounded-lg bg-black/10 group-hover:block" />
 		</div>
 	);

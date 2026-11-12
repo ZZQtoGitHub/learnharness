@@ -18,7 +18,7 @@ function SchemaRow({ row, onError }: { row: PluginSettingsRow; onError?: (error:
 			if (typeof value === "number" && (!Number.isFinite(value) ||
 				("min" in row && row.min !== undefined && value < row.min) ||
 				("max" in row && row.max !== undefined && value > row.max))) {
-				setError("Value is outside the allowed range."); return false;
+				setError("取值超出允许范围。"); return false;
 			}
 			setError(undefined);
 			changing.current = true;

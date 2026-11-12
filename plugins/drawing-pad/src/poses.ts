@@ -42,6 +42,6 @@ export function acceptedPoseKeys(messages: History): string[] {
 export function parsePoseResponse(value: unknown, sessionId: string): string[] {
   const input = object(value);
   if (!input || input.sessionId !== sessionId || !Array.isArray(input.poses) || !input.poses.every(pose => typeof pose === "string"))
-    throw new Error("Could not confirm the current practice problem. Your drawing has been kept.");
+    throw new Error("无法确认当前练习题。你的绘图已保留。");
   return input.poses as string[];
 }

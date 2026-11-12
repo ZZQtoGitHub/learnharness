@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
 	try { return Response.json(sourceDirectory.read()); }
-	catch { return Response.json({ error: "Could not read source organization." }, { status: 500 }); }
+	catch { return Response.json({ error: "无法读取资料组织方式。" }, { status: 500 }); }
 }
 
 export async function DELETE(request: Request) {
@@ -13,7 +13,7 @@ export async function DELETE(request: Request) {
 	catch (error) {
 		if (error instanceof SourceDeletionError) return Response.json({ error: error.message, code: error.code }, { status: error.status });
 		if (error instanceof SourceOrganizationInputError) return Response.json({ error: error.message }, { status: 400 });
-		return Response.json({ error: "Could not finish source deletion. Some entries may already have been removed; refresh or retry." }, { status: 500 });
+		return Response.json({ error: "无法完成资料删除。部分条目可能已被移除，请刷新或重试。" }, { status: 500 });
 	} finally {
 		emit("sources-changed", {}); emit("chats-changed", {}); emit("activity-changed", {});
 	}

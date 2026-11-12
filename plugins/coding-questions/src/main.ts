@@ -10,7 +10,7 @@ function mountRecordedTests(container: HTMLElement, ctx: PluginFrontendContext, 
   const result = "result" in outcome ? readTestResult(outcome.result) : null;
   const failure: CodingTestResult = {
     status: "error", exitCode: null, stdout: "", stderr: "", stdoutTruncated: false, stderrTruncated: false,
-    message: "error" in outcome ? outcome.error : "Saved test result is unavailable.",
+    message: "error" in outcome ? outcome.error : "已保存的测试结果不可用。",
   };
   return mountTestResult(container, ctx.ui, result ?? failure, signal, headerContainer);
 }

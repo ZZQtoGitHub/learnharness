@@ -31,10 +31,10 @@ export async function PUT(req: Request, { params }: Params) {
 	try {
 		body = await req.json();
 	} catch {
-		return Response.json({ error: "body must be JSON" }, { status: 400 });
+		return Response.json({ error: "请求体必须是 JSON" }, { status: 400 });
 	}
 	if (!body || typeof body !== "object" || Array.isArray(body) || typeof (body as { value?: unknown }).value !== "string") {
-		return Response.json({ error: "body must be {value: string}" }, { status: 400 });
+		return Response.json({ error: "请求体必须是 {value: string}" }, { status: 400 });
 	}
 	const result = saveKey(id, (body as { value: string }).value);
 	if (!result.ok) return Response.json({ error: result.error }, { status: 400 });

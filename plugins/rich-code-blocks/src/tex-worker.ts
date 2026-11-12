@@ -12,7 +12,7 @@ worker.onmessage = async ({ data }) => {
     checkSource("tikz", data.source);
     // Always use the plugin's explicit local resource root, never the package CDN default.
     const url = new URL(data.resourcesUrl);
-    if (url.origin !== new URL(import.meta.url).origin) throw new Error("TeX resources must be local plugin assets.");
+    if (url.origin !== new URL(import.meta.url).origin) throw new Error("TeX 资源必须是插件本地的资产。");
     if (!loader || resourceUrl !== url.href) { resourceUrl = url.href; loader = new BrowserResourceLoader(url.href); }
     const dvi = await tex(data.source, { showConsole: false }, loader);
     // The library's DOM parse is NOT a sanitizer. Our main-thread static SVG
@@ -25,6 +25,6 @@ worker.onmessage = async ({ data }) => {
     checkSvgSize(svg);
     worker.postMessage({ id: data.id, svg });
   } catch (error) {
-    worker.postMessage({ id: data.id, error: error instanceof Error ? error.message : "TeX rendering failed." });
+    worker.postMessage({ id: data.id, error: error instanceof Error ? error.message : "TeX 渲染失败。" });
   }
 };

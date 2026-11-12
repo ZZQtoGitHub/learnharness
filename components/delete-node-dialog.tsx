@@ -6,7 +6,7 @@ import { HostDialog } from "@/components/host-dialog";
 /** The 409 extraction_running line (owner phrasing, node interlude):
  *  the server's error names the extraction; the ACTIVITY DOCK is the
  *  surface the user actually watches drain. Exported pure for pins. */
-export const EXTRACTION_RETRY_LINE = "An extraction is running — try again when the activity dock drains.";
+export const EXTRACTION_RETRY_LINE = "正在提取资料，请等活动面板中的任务全部结束后再重试。";
 
 /**
  * Node deletion (node interlude, Platform's 50bfcba engine) — the
@@ -52,13 +52,13 @@ export function DeleteNodeBody({
 		<div
 			role="dialog"
 			aria-modal="true"
-			aria-label="Delete node"
+			aria-label="删除节点"
 			data-testid="delete-node-dialog"
 			onClick={(e) => e.stopPropagation()}
 			className="w-[32rem] max-w-[calc(100vw-2rem)] rounded-xl border bg-card p-5 shadow-xl"
 		>
 			<h2 className="text-sm font-semibold text-destructive">
-				{folders.length > 0 ? (nodes.length > 0 ? "Delete nodes and remove empty folders?" : "Remove empty folders?") : nodes.length === 1 ? "Delete node?" : `Delete ${nodes.length} nodes?`}
+				{folders.length > 0 ? (nodes.length > 0 ? "删除节点并移除空文件夹？" : "移除空文件夹？") : nodes.length === 1 ? "删除节点？" : `删除 ${nodes.length} 个节点？`}
 			</h2>
 			{/* The node name(s) below the title in JetBrains Mono (owner,
 			    2026-09-24): the name is the payload — mono suits it, and
@@ -77,18 +77,18 @@ export function DeleteNodeBody({
 				) : (
 					<code data-testid="node-names-code" className="font-mono text-sm text-foreground">
 						{nodes.slice(0, 8).map((n) => n.name).join(", ")}
-						{nodes.length > 8 ? `, and ${nodes.length - 8} more` : ""}
+						{nodes.length > 8 ? `，以及另外 ${nodes.length - 8} 个` : ""}
 					</code>
 				)}
 			</div>
-			{folders.length > 0 && <p className="mt-2 text-sm" data-testid="folder-removal-names">Empty folders: {folders.map((f) => f.name).join(", ")}</p>}
+			{folders.length > 0 && <p className="mt-2 text-sm" data-testid="folder-removal-names">空文件夹：{folders.map((f) => f.name).join(", ")}</p>}
 			{nodes.length > 0 && <p className="mt-2 text-sm text-muted-foreground" data-testid="node-permanence-line">
 				{nodes.length === 1
-					? "This permanently deletes the node — this cannot be undone."
-					: `This permanently deletes all ${nodes.length} nodes — this cannot be undone.`}
+					? "此操作会永久删除该节点，且无法撤销。"
+					: `此操作会永久删除全部 ${nodes.length} 个节点，且无法撤销。`}
 			</p>}
 			<p className="mt-2 text-xs text-muted-foreground" data-testid="folder-removal-explanation">
-				{folders.length > 0 ? "Only the named empty folders are removed. " : ""}Sessions, imported source records, and non-empty folders are kept.
+				{folders.length > 0 ? "仅移除所列的空文件夹。" : ""}会话、已导入的资料记录和非空文件夹都会保留。
 			</p>
 			{failure && (
 				<div
@@ -106,7 +106,7 @@ export function DeleteNodeBody({
 						disabled={busy}
 						className="ml-3 text-xs text-foreground underline-offset-2 hover:underline disabled:opacity-40"
 					>
-						Try again
+						重试
 					</button>
 				</div>
 			)}
@@ -118,7 +118,7 @@ export function DeleteNodeBody({
 					disabled={busy}
 					className="rounded-sm px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
 				>
-					Cancel
+					取消
 				</button>
 				<button
 					type="button"
@@ -130,7 +130,7 @@ export function DeleteNodeBody({
 					// refusal banner): border + text, fill on hover.
 					className="rounded-sm border border-destructive/50 bg-destructive/10 px-3 py-1.5 text-xs text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-40"
 				>
-					{busy ? "Deleting…" : "Delete"}
+					{busy ? "删除中…" : "删除"}
 				</button>
 			</div>
 		</div>
@@ -193,7 +193,7 @@ export function DeleteNodeDialog({
 					graphRevision?: number;
 				};
 				if (!res.ok) {
-					setFailure({ code: body.code ?? "error", error: body.error ?? `Delete failed (${res.status})` });
+					setFailure({ code: body.code ?? "error", error: body.error ?? `删除失败（${res.status}）` });
 					setBusy(false);
 					if (dead.length > 0) onDeleted(dead, revision);
 					return;
@@ -202,14 +202,14 @@ export function DeleteNodeDialog({
 				revision = body.graphRevision ?? revision;
 			}
 			for (const folder of folders) {
-				if (!onRemoveFolder) throw new Error("Folder removal is unavailable.");
+				if (!onRemoveFolder) throw new Error("无法移除文件夹。");
 				await onRemoveFolder(folder.id);
 				removedFolders.push(folder.id);
 			}
 			if (removedFolders.length > 0) onFoldersDeleted?.(removedFolders);
 			onDeleted(dead, revision);
 		} catch (error) {
-			setFailure({ code: "network", error: folders.length > 0 && error instanceof Error ? error.message : "Delete failed — network error. Try again." });
+			setFailure({ code: "network", error: folders.length > 0 && error instanceof Error ? error.message : "删除失败，网络异常。请重试。" });
 			if (removedFolders.length > 0) onFoldersDeleted?.(removedFolders);
 			setBusy(false);
 			if (dead.length > 0) onDeleted(dead, revision);

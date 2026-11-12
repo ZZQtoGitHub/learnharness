@@ -25,10 +25,10 @@ export function createCiteAction({ chatId, composer, openEditor }: {
 }): SelectionAction {
 	return {
 		id: "cite",
-		label: "Cite",
-		ariaLabel: "Cite selection in your input",
+		label: "引用",
+		ariaLabel: "将选中内容引用到输入框",
 		icon: Quote,
-		disabledLabel: (capture) => (capture.selector.text.length > CITATION_MAX_TEXT_LENGTH ? "Shorten selection" : null),
+		disabledLabel: (capture) => (capture.selector.text.length > CITATION_MAX_TEXT_LENGTH ? "缩短选中内容" : null),
 		visible: () => composer() !== null,
 		onSelect: (capture) => {
 			const root = composer();

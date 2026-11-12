@@ -93,7 +93,7 @@ export function DraftShell({
 	 *  created session carries kind:"practice" and the copy changes
 	 *  (the practice agent opens; no probing). */
 	mode?: "teach" | "practice";
-	/** The first-run CTA (fix wave chunk B): the same "Set up your models"
+	/** The first-run CTA (fix wave chunk B): the same "设置模型"
 	 *  affordance home carries, rendered above the draft shell — passed by
 	 *  NewSession, which owns the configured state and the SetupDialog. */
 	setupCta?: ReactNode;
@@ -178,11 +178,11 @@ export function DraftShell({
 						<Conversation className="h-full min-w-0 flex-1" initial="instant">
 							<ConversationContent className="min-h-full gap-0 p-0">
 								<ConversationEmptyState
-									title={mode === "practice" ? "New practice session" : "New session"}
+									title={mode === "practice" ? "新的练习会话" : "新会话"}
 									description={
 										mode === "practice"
-											? "Pick nodes from your knowledge graph, describe what you want to practice, or bring your own problem."
-											: "The teacher will open by probing what you already know."
+											? "从知识图谱挑选节点、描述你想练习的内容，或带上自己的题目。"
+											: "老师会先探查你已经掌握的部分。"
 									}
 								/>
 							</ConversationContent>
@@ -212,7 +212,7 @@ export function DraftShell({
 										// input (owner refinement round, 2026-09-24) — no lesson has
 										// started yet, so the composer must not read like one is in
 										// flight.
-										placeholder={mode === "practice" ? "What do you want to practice?" : "What do you want to learn?"}
+										placeholder={mode === "practice" ? "你想练习什么？" : "你想学什么？"}
 									/>
 								</div>
 								<StatsBar
@@ -376,7 +376,7 @@ export function NewSession({ initialConfigured, mode = "teach" }: { initialConfi
 								onClick={() => setSetupOpen(true)}
 								className="rounded-sm border border-border bg-card px-3 py-1.5 font-ui text-xs text-foreground transition-colors hover:border-muted-foreground/50 hover:bg-accent cursor-pointer"
 							>
-								Set up your models
+								设置模型
 							</button>
 						)
 					)

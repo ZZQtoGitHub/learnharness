@@ -52,7 +52,7 @@ for (const [name, results] of [
 	["invalid error", [{ ...completed(), error: 42 }, completed(1)]],
 	["invalid notice", [{ ...completed(), notice: 42 }, completed(1)]],
 	["missing failure error", [{ ...completed(), ok: false, outcome: "failed" }, completed(1)]],
-] as const) it(`malformed response (${name}) warns to inspect before retrying`, () => { assert.throws(() => parseNotesImportResults({ results }, files), /Check the graph before retrying/); });
+] as const) it(`malformed response (${name}) warns to inspect before retrying`, () => { assert.throws(() => parseNotesImportResults({ results }, files), /重试前请检查图谱/); });
 
 it("POST includes captured files and relative identities, preserving provider details", async () => {
 	const file = new File(["two"], "same.md"); Object.defineProperty(file, "webkitRelativePath", { value: "Course/Week/same.md" });
@@ -79,15 +79,15 @@ for (const outcome of ["completed", "failed", "partial", "aborted", "busy"] as c
 	assert.doesNotMatch(html, /<button|<section|<ul|border|bg-card|rounded|shadow|Retry|Dismiss|Import complete/);
 	if (outcome === "completed") { assert.equal(html, ""); assert.deepEqual(current.errors, []); }
 	else {
-		assert.deepEqual(current.errors, [`${file.name}: ${result.error}\nprovider_key_missing — openai — OPENAI_API_KEY — cheap, strong`]);
-		assert.match(html, /&lt;script&gt;notes.md: &lt;img&gt;synthetic failure/); assert.match(html, /role="alert"/); assert.doesNotMatch(html, /<script>|<img>/);
+		assert.deepEqual(current.errors, [`${file.name}：${result.error}\nprovider_key_missing — openai — OPENAI_API_KEY — cheap, strong`]);
+		assert.match(html, /&lt;script&gt;notes.md：&lt;img&gt;synthetic failure/); assert.match(html, /role="alert"/); assert.doesNotMatch(html, /<script>|<img>/);
 	}
 });
 for (const details of [{ code: "models_not_configured", missing: ["cheap", "strong", "vision"] }, { code: "provider_key_missing", provider: "openai", slots: ["cheap"] }, { code: "provider_key_missing" }, {}]) it(`configuration details survive (${JSON.stringify(details)})`, async () => {
 	globalThis.fetch = async () => Response.json({ results: [{ requestIndex: 0, filePath: "same.md", ok: false, outcome: "failed", error: "Existing raw error", ...details }] });
 	await mount(); await submit([files[0]!]);
 	const suffix = details.code === "models_not_configured" ? "\nmodels_not_configured — cheap, strong, vision" : details.provider ? "\nprovider_key_missing — openai — cheap" : details.code ? "\nprovider_key_missing" : "";
-	assert.deepEqual(current.errors, [`same.md: Existing raw error${suffix}`]);
+	assert.deepEqual(current.errors, [`same.md：Existing raw error${suffix}`]);
 });
 
 it("one-file responses are attributed in selection order despite duplicate basenames and completion order", async () => {
@@ -98,7 +98,7 @@ it("one-file responses are attributed in selection order despite duplicate basen
 		return Response.json({ results: [{ requestIndex: 0, filePath: file.name, ok: index === 0, outcome: index === 0 ? "completed" : "partial", stats: { nodes: 0 }, error: index === 1 ? "first duplicate" : "second duplicate" }] });
 	};
 	await mount(); await submit([new File(["success"], "success.md"), ...files]);
-	assert.deepEqual(current.errors, ["same.md: first duplicate", "same.md: second duplicate"]);
+	assert.deepEqual(current.errors, ["same.md：first duplicate", "same.md：second duplicate"]);
 });
 for (const kind of ["network", "non-JSON", "non-2xx", "malformed", "duplicate index"] as const) it(`${kind} hook failure is visible, never retried or reported as success`, async () => {
 	let calls = 0;
@@ -109,8 +109,8 @@ for (const kind of ["network", "non-JSON", "non-2xx", "malformed", "duplicate in
 		return Response.json({ results: kind === "duplicate index" ? [completed(), completed()] : [] });
 	};
 	await mount(); await submit();
-	const message = kind === "network" ? "synthetic offline" : kind === "non-2xx" ? "Import request failed (HTTP 503): synthetic refused. Check the graph before retrying." : "Invalid import response. Check the graph before retrying.";
-	assert.deepEqual(current.errors, files.map((file) => `${file.name}: ${message}`));
+	const message = kind === "network" ? "synthetic offline" : kind === "non-2xx" ? "导入请求失败（HTTP 503）：synthetic refused。 重试前请检查图谱。" : "导入响应无效。重试前请检查图谱。";
+	assert.deepEqual(current.errors, files.map((file) => `${file.name}：${message}`));
 	assert.equal(calls, 2); assert.equal(finishes, 1); assert.equal(current.importing, false);
 });
 
@@ -125,15 +125,15 @@ it("PDF notices and failures survive per-file requests, in selection order", asy
 	globalThis.fetch = async (_url, init) => {
 		const file = (init!.body as FormData).get("files") as File;
 		return Response.json({ results: [{ ...completed(0, file.name), notice: file.name === "c.pdf" ? "Scanned pages may have errors." : undefined,
-			...(file.name === "a.pdf" ? { ok: false, outcome: "failed", error: "OCR not supported yet." } : {}) }] });
+			...(file.name === "a.pdf" ? { ok: false, outcome: "failed", error: "暂不支持 OCR。" } : {}) }] });
 	};
 	await mount(); await submit([new File(["a"], "a.pdf"), new File(["b"], "b.md"), new File(["c"], "c.pdf")]);
-	assert.deepEqual(current.notices, ["c.pdf: Scanned pages may have errors."]); assert.deepEqual(current.errors, ["a.pdf: OCR not supported yet."]);
+	assert.deepEqual(current.notices, ["c.pdf：Scanned pages may have errors."]); assert.deepEqual(current.errors, ["a.pdf：暂不支持 OCR。"]);
 });
-for (const [status, error] of [[413, "Too big. Max 25 MB."], [413, "Import request is too large. Select fewer files."], [400, "Could not read the upload. It may be incomplete; please select the files again."]] as const) it(`server refusal remains readable (${error})`, async () => {
+for (const [status, error] of [[413, "文件过大，上限 25 MB。"], [413, "Import request is too large. Select fewer files."], [400, "Could not read the upload. It may be incomplete; please select the files again."]] as const) it(`server refusal remains readable (${error})`, async () => {
 	globalThis.fetch = async () => Response.json({ results: [], error }, { status });
 	await mount(); await submit();
-	assert.deepEqual(current.errors, files.map((file) => `${file.name}: Import request failed (HTTP ${status}): ${error} Check the graph before retrying.`));
+	assert.deepEqual(current.errors, files.map((file) => `${file.name}：导入请求失败（HTTP ${status}）：${error}${/[.!?]$/.test(error) ? "" : "。"} 重试前请检查图谱。`));
 	assert.deepEqual(current.notices, []); assert.equal(current.importing, false);
 });
 it("25 MiB is per file, not per selection; oversized files fail locally while smaller siblings upload", async () => {
@@ -142,7 +142,7 @@ it("25 MiB is per file, not per selection; oversized files fail locally while sm
 	await mount();
 	const half = new Uint8Array(MAX_IMPORT_BYTES / 2 + 1);
 	await submit([new File([new Uint8Array(MAX_IMPORT_BYTES + 1)], "textbook.pdf"), new File([half], "a.pdf"), new File([half], "b.pdf")]);
-	assert.deepEqual(sent, ["a.pdf", "b.pdf"]); assert.deepEqual(current.errors, ["textbook.pdf: Too big. Max 25 MB."]);
+	assert.deepEqual(sent, ["a.pdf", "b.pdf"]); assert.deepEqual(current.errors, ["textbook.pdf：文件过大，最大 25 MB。"]);
 });
 it("picker stays enabled during imports, offers Files/Folder, and keeps PDF support", () => {
 	const html = renderToStaticMarkup(<NotesImportControl importing onImportFiles={() => {}} />);
@@ -158,16 +158,16 @@ it("graph menu clearly distinguishes extraction from lesson material, above unch
 	host = document.createElement("div"); document.body.appendChild(host); root = createRoot(host);
 	await act(async () => { root!.render(<InteractionLayersProvider><NotesImportControl importing={false} onImportFiles={(files) => selected.push(files)} /></InteractionLayersProvider>); });
 	const trigger = host.querySelector<HTMLButtonElement>('[data-testid="import-notes"]')!;
-	assert.equal(trigger.textContent, "Extract files…");
+	assert.equal(trigger.textContent, "提取文件…");
 	assert.ok(trigger.querySelector(".lucide-waypoints"));
 	await act(async () => { trigger.click(); });
 	const menu = host.querySelector('[role="menu"]')!;
-	assert.equal(menu.getAttribute("aria-label"), "Extract files into the graph");
-	assert.equal(menu.querySelector("p")!.textContent, "For lessons, attach material to a session instead.");
+	assert.equal(menu.getAttribute("aria-label"), "将文件提取到图谱");
+	assert.equal(menu.querySelector("p")!.textContent, "课程相关内容请改为在会话中附加资料。");
 	assert.equal(menu.getAttribute("aria-describedby"), menu.querySelector("p")!.id);
 	assert.ok(menu.className.includes("w-52"), "compact width wraps the short hint");
-	assert.deepEqual(Array.from(menu.querySelectorAll('[role="menuitem"]')).map((item) => item.textContent), ["Files", "Folder"]);
-	assert.equal(menu.firstElementChild!.textContent, "For lessons, attach material to a session instead.");
+	assert.deepEqual(Array.from(menu.querySelectorAll('[role="menuitem"]')).map((item) => item.textContent), ["文件", "文件夹"]);
+	assert.equal(menu.firstElementChild!.textContent, "课程相关内容请改为在会话中附加资料。");
 	const inputs = host.querySelectorAll<HTMLInputElement>('input[type="file"]');
 	let filesClicks = 0, folderClicks = 0;
 	inputs[0]!.click = () => { filesClicks++; }; inputs[1]!.click = () => { folderClicks++; };
@@ -180,7 +180,7 @@ it("graph menu clearly distinguishes extraction from lesson material, above unch
 });
 it("busy graph action names extraction, and preserves the enabled queue picker", () => {
 	const html = renderToStaticMarkup(<NotesImportControl importing onImportFiles={() => {}} />);
-	assert.match(html, /Extracting…/);
+	assert.match(html, /正在提取…/);
 	assert.doesNotMatch(html, /Import notes|Importing…|disabled/);
 });
 

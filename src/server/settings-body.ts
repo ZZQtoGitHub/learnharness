@@ -41,7 +41,7 @@ export type SettingsBodyResult<T> =
 
 export function parseSettingsBody(body: unknown): SettingsBodyResult<ChatSettings> {
 	if (!body || typeof body !== "object" || Array.isArray(body)) {
-		return { ok: false, error: "Invalid JSON body" };
+		return { ok: false, error: "请求体不是合法的 JSON" };
 	}
 	const raw = body as {
 		model?: { provider?: unknown; id?: unknown };
@@ -55,13 +55,13 @@ export function parseSettingsBody(body: unknown): SettingsBodyResult<ChatSetting
 			typeof raw.model.provider !== "string" ||
 			typeof raw.model.id !== "string"
 		) {
-			return { ok: false, error: "model must be {provider, id}" };
+			return { ok: false, error: "model 必须是 {provider, id}" };
 		}
 		settings.model = { provider: raw.model.provider, id: raw.model.id };
 	}
 	if (raw.thinkingLevel !== undefined) {
 		if (typeof raw.thinkingLevel !== "string") {
-			return { ok: false, error: "thinkingLevel must be a string" };
+			return { ok: false, error: "thinkingLevel 必须是字符串" };
 		}
 		settings.thinkingLevel = raw.thinkingLevel as ThinkingLevel;
 	}
@@ -86,11 +86,11 @@ function asRecord(body: unknown): Record<string, unknown> | null {
 /** general: { autoUpdate?: boolean } */
 export function parseGeneralSettingsBody(body: unknown): SettingsBodyResult<GeneralSettings> {
 	const raw = asRecord(body);
-	if (!raw) return { ok: false, error: "Invalid JSON body" };
+	if (!raw) return { ok: false, error: "请求体不是合法的 JSON" };
 	const settings: GeneralSettings = {};
 	if (raw.autoUpdate !== undefined) {
 		if (typeof raw.autoUpdate !== "boolean") {
-			return { ok: false, error: "autoUpdate must be a boolean" };
+			return { ok: false, error: "autoUpdate 必须是布尔值" };
 		}
 		settings.autoUpdate = raw.autoUpdate;
 	}
@@ -100,9 +100,9 @@ export function parseGeneralSettingsBody(body: unknown): SettingsBodyResult<Gene
 /** claudeCode: explicit app-wide opt-in. Empty section resets to off. */
 export function parseClaudeCodeSettingsBody(body: unknown): SettingsBodyResult<{ enabled?: boolean }> {
 	const raw = asRecord(body);
-	if (!raw) return { ok: false, error: "Invalid JSON body" };
+	if (!raw) return { ok: false, error: "请求体不是合法的 JSON" };
 	if (raw.enabled === undefined) return { ok: true, settings: {} };
-	if (typeof raw.enabled !== "boolean") return { ok: false, error: "enabled must be a boolean" };
+	if (typeof raw.enabled !== "boolean") return { ok: false, error: "enabled 必须是布尔值" };
 	return { ok: true, settings: { enabled: raw.enabled } };
 }
 
@@ -110,7 +110,7 @@ export function parseClaudeCodeSettingsBody(body: unknown): SettingsBodyResult<{
  *  fields mirror ChatSettings (model pair + independent thinkingLevel). */
 function parseRoleOverride(value: unknown, role: string): { ok: true; override: RoleModelOverride } | { ok: false; error: string } {
 	const raw = asRecord(value);
-	if (!raw) return { ok: false, error: `${role} must be an object` };
+	if (!raw) return { ok: false, error: `${role} 必须是对象` };
 	const override: RoleModelOverride = {};
 	if (raw.model !== undefined) {
 		if (
@@ -119,7 +119,7 @@ function parseRoleOverride(value: unknown, role: string): { ok: true; override: 
 			typeof (raw.model as Record<string, unknown>).provider !== "string" ||
 			typeof (raw.model as Record<string, unknown>).id !== "string"
 		) {
-			return { ok: false, error: `${role}.model must be {provider, id}` };
+			return { ok: false, error: `${role}.model 必须是 {provider, id}` };
 		}
 		override.model = {
 			provider: (raw.model as { provider: string }).provider,
@@ -128,7 +128,7 @@ function parseRoleOverride(value: unknown, role: string): { ok: true; override: 
 	}
 	if (raw.thinkingLevel !== undefined) {
 		if (typeof raw.thinkingLevel !== "string") {
-			return { ok: false, error: `${role}.thinkingLevel must be a string` };
+			return { ok: false, error: `${role}.thinkingLevel 必须是字符串` };
 		}
 		override.thinkingLevel = raw.thinkingLevel as ThinkingLevel;
 	}
@@ -139,10 +139,10 @@ function parseRoleOverride(value: unknown, role: string): { ok: true; override: 
 function parseBooleanMap(value: unknown, field: string): { map?: Record<string, boolean>; error?: string } {
 	if (value === undefined) return {};
 	const raw = asRecord(value);
-	if (!raw) return { error: `${field} must be an object` };
+	if (!raw) return { error: `${field} 必须是对象` };
 	const out: Record<string, boolean> = {};
 	for (const [key, entry] of Object.entries(raw)) {
-		if (typeof entry !== "boolean") return { error: `${field}.${key} must be a boolean` };
+		if (typeof entry !== "boolean") return { error: `${field}.${key} 必须是布尔值` };
 		out[key] = entry;
 	}
 	return { map: out };
@@ -153,22 +153,22 @@ function parseBooleanMap(value: unknown, field: string): { map?: Record<string, 
  *  prompt switch-on membership is checked by the route (needs the store). */
 export function parseAgentSettingsBody(body: unknown): SettingsBodyResult<AgentSettings> {
 	const raw = asRecord(body);
-	if (!raw) return { ok: false, error: "Invalid JSON body" };
+	if (!raw) return { ok: false, error: "请求体不是合法的 JSON" };
 	const settings: AgentSettings = {};
 	if (raw.workerRequestConcurrency !== undefined) {
 		if (typeof raw.workerRequestConcurrency !== "number" || !Number.isSafeInteger(raw.workerRequestConcurrency) || raw.workerRequestConcurrency <= 0) {
-			return { ok: false, error: "workerRequestConcurrency must be a positive, safely representable whole number" };
+			return { ok: false, error: "workerRequestConcurrency 必须是可安全表示的正整数" };
 		}
 		settings.workerRequestConcurrency = raw.workerRequestConcurrency;
 	}
 	if (raw.models !== undefined) {
 		const models = asRecord(raw.models);
-		if (!models) return { ok: false, error: "models must be an object" };
+		if (!models) return { ok: false, error: "models 必须是对象" };
 		const known = BACKGROUND_MODEL_ROLES as readonly string[];
 		const parsed: NonNullable<AgentSettings["models"]> = {};
 		for (const [role, value] of Object.entries(models)) {
 			if (!known.includes(role)) {
-				return { ok: false, error: `unknown role "${role}" (supported: ${known.join(", ")})` };
+				return { ok: false, error: `未知角色“${role}”（可选项：${known.join(", ")}）` };
 			}
 			const override = parseRoleOverride(value, role);
 			if (!override.ok) return { ok: false, error: override.error };
@@ -188,7 +188,7 @@ export function parseAgentSettingsBody(body: unknown): SettingsBodyResult<AgentS
 		const supported = WRITABLE_TOOL_KEYS as readonly string[];
 		for (const key of Object.keys(tools.map)) {
 			if (!supported.includes(key)) {
-				return { ok: false, error: `unknown tool "${key}" (supported: ${supported.join(", ")})` };
+				return { ok: false, error: `未知工具“${key}”（可选项：${supported.join(", ")}）` };
 			}
 		}
 		settings.tools = tools.map;
@@ -198,10 +198,10 @@ export function parseAgentSettingsBody(body: unknown): SettingsBodyResult<AgentS
 	if (prompts.map) settings.prompts = prompts.map;
 	if (raw.search !== undefined) {
 		const search = asRecord(raw.search);
-		if (!search) return { ok: false, error: "search must be an object" };
+		if (!search) return { ok: false, error: "search 必须是对象" };
 		if (search.engine !== undefined) {
 			if (!isSearchEngineId(search.engine)) {
-				return { ok: false, error: `search.engine must be ${SEARCH_ENGINES.map((engine) => `"${engine.id}"`).join(", ")}` };
+				return { ok: false, error: `search.engine 必须是 ${SEARCH_ENGINES.map((engine) => `"${engine.id}"`).join(", ")}` };
 			}
 			settings.search = { engine: search.engine };
 		}
@@ -212,9 +212,9 @@ export function parseAgentSettingsBody(body: unknown): SettingsBodyResult<AgentS
 	// object shape only; `enabled` boolean when present. Absent = ON.
 	if (raw.graphTools !== undefined) {
 		const graphTools = asRecord(raw.graphTools);
-		if (!graphTools) return { ok: false, error: "graphTools must be an object" };
+		if (!graphTools) return { ok: false, error: "graphTools 必须是对象" };
 		if (graphTools.enabled !== undefined && typeof graphTools.enabled !== "boolean") {
-			return { ok: false, error: "graphTools.enabled must be a boolean" };
+			return { ok: false, error: "graphTools.enabled 必须是布尔值" };
 		}
 		settings.graphTools = graphTools.enabled === undefined ? {} : { enabled: graphTools.enabled };
 	}
@@ -222,7 +222,7 @@ export function parseAgentSettingsBody(body: unknown): SettingsBodyResult<AgentS
 		const parsed = parseFileAccessSettings(raw.fileAccess);
 		if (!parsed.ok) return parsed;
 		if (parsed.settings.folders.some((folder) => folder !== "~" && !folder.startsWith("~/") && !path.isAbsolute(folder))) {
-			return { ok: false, error: "fileAccess.folders must be absolute on the server filesystem (or start with ~/)" };
+			return { ok: false, error: "fileAccess.folders 必须使用服务器文件系统的绝对路径（或以 ~/ 开头）" };
 		}
 		settings.fileAccess = parsed.settings;
 	}
@@ -233,7 +233,7 @@ export function parseAgentSettingsBody(body: unknown): SettingsBodyResult<AgentS
 function parseHexOrNull(value: unknown, field: string): { color?: string | null; error?: string } {
 	if (value === null) return { color: null };
 	if (typeof value !== "string" || !isHexColor(value)) {
-		return { error: `${field} must be a #hex color or null` };
+		return { error: `${field} 必须是 #hex 颜色值或 null` };
 	}
 	return { color: value };
 }
@@ -243,10 +243,10 @@ function parseHexOrNull(value: unknown, field: string): { color?: string | null;
  *  `theme` is shape-checked here (slug); whether it EXISTS is the route's check. */
 export function parseAppearanceSettingsBody(body: unknown): SettingsBodyResult<AppearanceSettings> {
 	const raw = asRecord(body);
-	if (!raw) return { ok: false, error: "Invalid JSON body" };
+	if (!raw) return { ok: false, error: "请求体不是合法的 JSON" };
 	const settings: AppearanceSettings = {};
 	if (raw.theme !== undefined) {
-		if (!isThemeId(raw.theme)) return { ok: false, error: "theme must be a theme id (lowercase slug)" };
+		if (!isThemeId(raw.theme)) return { ok: false, error: "theme 必须是主题 id（小写短横线命名）" };
 		settings.theme = raw.theme;
 	}
 	if (raw.background !== undefined) {
@@ -256,11 +256,11 @@ export function parseAppearanceSettingsBody(body: unknown): SettingsBodyResult<A
 	}
 	if (raw.colors !== undefined) {
 		const colors = asRecord(raw.colors);
-		if (!colors) return { ok: false, error: "colors must be an object" };
+		if (!colors) return { ok: false, error: "colors 必须是对象" };
 		const out: AppearanceColorOverrides = {};
 		for (const [key, value] of Object.entries(colors)) {
 			if (!(COLOR_OVERRIDE_KEYS as readonly string[]).includes(key)) {
-				return { ok: false, error: `unknown color "${key}" (supported: ${COLOR_OVERRIDE_KEYS.join(", ")})` };
+				return { ok: false, error: `未知颜色“${key}”（可选项：${COLOR_OVERRIDE_KEYS.join(", ")}）` };
 			}
 			const parsed = parseHexOrNull(value, `colors.${key}`);
 			if (parsed.error) return { ok: false, error: parsed.error };
@@ -270,7 +270,7 @@ export function parseAppearanceSettingsBody(body: unknown): SettingsBodyResult<A
 	}
 	if (raw.fontFamily !== undefined) {
 		if (raw.fontFamily !== null && (typeof raw.fontFamily !== "string" || !raw.fontFamily.trim())) {
-			return { ok: false, error: "fontFamily must be a non-empty string or null" };
+			return { ok: false, error: "fontFamily 必须是非空字符串或 null" };
 		}
 		settings.fontFamily = raw.fontFamily as string | null;
 	}
@@ -281,25 +281,25 @@ export function parseAppearanceSettingsBody(body: unknown): SettingsBodyResult<A
 			raw.proseFontSize < 12 ||
 			raw.proseFontSize > 24
 		) {
-			return { ok: false, error: "proseFontSize must be an integer between 12 and 24" };
+			return { ok: false, error: "proseFontSize 必须是 12 到 24 之间的整数" };
 		}
 		settings.proseFontSize = raw.proseFontSize;
 	}
 	if (raw.codeLigatures !== undefined) {
 		if (typeof raw.codeLigatures !== "boolean") {
-			return { ok: false, error: "codeLigatures must be a boolean" };
+			return { ok: false, error: "codeLigatures 必须是布尔值" };
 		}
 		settings.codeLigatures = raw.codeLigatures;
 	}
 	if (raw.sessionNameSerif !== undefined) {
 		if (typeof raw.sessionNameSerif !== "boolean") {
-			return { ok: false, error: "sessionNameSerif must be a boolean" };
+			return { ok: false, error: "sessionNameSerif 必须是布尔值" };
 		}
 		settings.sessionNameSerif = raw.sessionNameSerif;
 	}
 	if (raw.mdRendering !== undefined) {
 		const md = asRecord(raw.mdRendering);
-		if (!md) return { ok: false, error: "mdRendering must be an object" };
+		if (!md) return { ok: false, error: "mdRendering 必须是对象" };
 		const rendering: NonNullable<AppearanceSettings["mdRendering"]> = {};
 		if (md.headingWeight !== undefined) {
 			if (
@@ -308,7 +308,7 @@ export function parseAppearanceSettingsBody(body: unknown): SettingsBodyResult<A
 				md.headingWeight < 100 ||
 				md.headingWeight > 900
 			) {
-				return { ok: false, error: "mdRendering.headingWeight must be an integer between 100 and 900" };
+				return { ok: false, error: "mdRendering.headingWeight 必须是 100 到 900 之间的整数" };
 			}
 			rendering.headingWeight = md.headingWeight;
 		}
@@ -334,7 +334,7 @@ export function parseAppearanceSettingsBody(body: unknown): SettingsBodyResult<A
  *  names). Old-shape keys in a body are ignored, not rejected. */
 export function parseGraphSettingsBody(body: unknown): SettingsBodyResult<GraphSettings> {
 	const raw = asRecord(body);
-	if (!raw) return { ok: false, error: "Invalid JSON body" };
+	if (!raw) return { ok: false, error: "请求体不是合法的 JSON" };
 	// Wave 7 collapse (owner ruling 2026-09-23) + the extraction-UX
 	// redesign (2026-09-24): the section is the master switch and the
 	// chunk budget. PUT is replace-whole — a body like {enabled: true} IS
@@ -343,16 +343,16 @@ export function parseGraphSettingsBody(body: unknown): SettingsBodyResult<GraphS
 	// sanitizer drops them; see sanitizeGraph).
 	const settings: GraphSettings = {};
 	if (raw.enabled !== undefined) {
-		if (typeof raw.enabled !== "boolean") return { ok: false, error: "enabled must be a boolean" };
+		if (typeof raw.enabled !== "boolean") return { ok: false, error: "enabled 必须是布尔值" };
 		settings.enabled = raw.enabled;
 	}
 	if (raw.rendering !== undefined) {
-		if (typeof raw.rendering !== "boolean") return { ok: false, error: "rendering must be a boolean" };
+		if (typeof raw.rendering !== "boolean") return { ok: false, error: "rendering 必须是布尔值" };
 		settings.rendering = raw.rendering;
 	}
 	if (raw.extractionChunkTokens !== undefined) {
 		if (typeof raw.extractionChunkTokens !== "number" || !Number.isFinite(raw.extractionChunkTokens)) {
-			return { ok: false, error: "extractionChunkTokens must be a number" };
+			return { ok: false, error: "extractionChunkTokens 必须是数字" };
 		}
 		const floored = Math.floor(raw.extractionChunkTokens);
 		if (floored < EXTRACTION_CHUNK_TOKENS_FLOOR) {
@@ -361,7 +361,7 @@ export function parseGraphSettingsBody(body: unknown): SettingsBodyResult<GraphS
 			// cost more per extracted token than the content is worth.
 			return {
 				ok: false,
-				error: `extractionChunkTokens must be at least ${EXTRACTION_CHUNK_TOKENS_FLOOR} (smaller batches waste the per-run graph overhead)`,
+				error: `extractionChunkTokens 不能小于 ${EXTRACTION_CHUNK_TOKENS_FLOOR}（更小的批次会浪费每次运行的知识图谱开销）`,
 			};
 		}
 		settings.extractionChunkTokens = floored;
@@ -376,12 +376,12 @@ export function parseGraphSettingsBody(body: unknown): SettingsBodyResult<GraphS
  *  (validateChatSettings discipline). */
 export function parseModelsSettingsBody(body: unknown): SettingsBodyResult<ModelsSettings> {
 	const raw = asRecord(body);
-	if (!raw) return { ok: false, error: "Invalid JSON body" };
+	if (!raw) return { ok: false, error: "请求体不是合法的 JSON" };
 	const settings: ModelsSettings = {};
 	for (const key of Object.keys(raw)) {
 		const known = MODEL_SLOTS as readonly string[];
 		if (!known.includes(key)) {
-			return { ok: false, error: `unknown slot "${key}" (supported: ${known.join(", ")})` };
+			return { ok: false, error: `未知槽位“${key}”（可选项：${known.join(", ")}）` };
 		}
 		const parsed = parseRoleOverride(raw[key], key);
 		if (!parsed.ok) return { ok: false, error: parsed.error };
@@ -390,13 +390,13 @@ export function parseModelsSettingsBody(body: unknown): SettingsBodyResult<Model
 		// write must carry the model (the level is an optional rider). An
 		// absent slot key clears the tier (replace-whole section).
 		if (!parsed.override.model) {
-			return { ok: false, error: `slot "${key}" must set a model (thinkingLevel alone cannot run — absent slot = unset)` };
+			return { ok: false, error: `槽位“${key}”必须指定模型（只设 thinkingLevel 无法运行——未设置的槽位视为未配置）` };
 		}
 		const slot: ModelSlot = parsed.override;
 		const retention = (raw[key] as Record<string, unknown>).cacheRetention;
 		if (retention !== undefined) {
 			if (!CACHE_RETENTIONS.some((value) => value === retention)) {
-				return { ok: false, error: `${key}.cacheRetention must be none, short, or long` };
+				return { ok: false, error: `${key}.cacheRetention 必须是 none、short 或 long` };
 			}
 			slot.cacheRetention = retention as ModelSlot["cacheRetention"];
 		}
@@ -408,30 +408,30 @@ export function parseModelsSettingsBody(body: unknown): SettingsBodyResult<Model
 /** compaction: opt-in reasoning accounting (boolean, default off) and the
  *  projected-token budget over which a session summarizes its own history
  *  into the compaction marker. Strict write side: a present
- *  thresholdTokens must be a number at or above the floor (the floor is
+ *  thresholdTokens 必须是数字 at or above the floor (the floor is
  *  anti-churn: each compaction keeps a ~20k-token recent tail, so a
  *  smaller threshold would re-summarize the tail it just wrote). Absent =
  *  factory default 150k at resolution. Replace-whole, like every
  *  section. */
 export function parseCompactionSettingsBody(body: unknown): SettingsBodyResult<CompactionSettings> {
 	const raw = asRecord(body);
-	if (!raw) return { ok: false, error: "Invalid JSON body" };
+	if (!raw) return { ok: false, error: "请求体不是合法的 JSON" };
 	const settings: CompactionSettings = {};
 	if (raw.includeReasoning !== undefined) {
 		if (typeof raw.includeReasoning !== "boolean") {
-			return { ok: false, error: "includeReasoning must be true or false" };
+			return { ok: false, error: "includeReasoning 必须是 true 或 false" };
 		}
 		settings.includeReasoning = raw.includeReasoning;
 	}
 	if (raw.thresholdTokens !== undefined) {
 		if (typeof raw.thresholdTokens !== "number" || !Number.isFinite(raw.thresholdTokens)) {
-			return { ok: false, error: "thresholdTokens must be a number" };
+			return { ok: false, error: "thresholdTokens 必须是数字" };
 		}
 		const floored = Math.floor(raw.thresholdTokens);
 		if (floored < COMPACTION_THRESHOLD_FLOOR) {
 			return {
 				ok: false,
-				error: `thresholdTokens must be at least ${COMPACTION_THRESHOLD_FLOOR} (compaction keeps a ~20k-token recent tail — smaller budgets would churn it)`,
+				error: `thresholdTokens 不能小于 ${COMPACTION_THRESHOLD_FLOOR}（上下文压缩会保留约 20k token 的近期尾部——预算更小会反复触发压缩）`,
 			};
 		}
 		settings.thresholdTokens = floored;
@@ -442,9 +442,9 @@ export function parseCompactionSettingsBody(body: unknown): SettingsBodyResult<C
 /** dictation: { language?: one of Nova-3's supported language codes } */
 export function parseDictationSettingsBody(body: unknown): SettingsBodyResult<DictationSettings> {
 	const raw = asRecord(body);
-	if (!raw) return { ok: false, error: "Invalid JSON body" };
+	if (!raw) return { ok: false, error: "请求体不是合法的 JSON" };
 	if (raw.language === undefined) return { ok: true, settings: {} };
-	if (!isDictationLanguage(raw.language)) return { ok: false, error: "Unsupported dictation language" };
+	if (!isDictationLanguage(raw.language)) return { ok: false, error: "不支持该听写语言" };
 	return { ok: true, settings: { language: raw.language } };
 }
 
@@ -457,15 +457,15 @@ export function parseCustomModelOverridesBody(
 	body: unknown,
 ): SettingsBodyResult<Record<string, CustomModelOverride>> {
 	const raw = asRecord(body);
-	if (!raw) return { ok: false, error: "Invalid JSON body" };
+	if (!raw) return { ok: false, error: "请求体不是合法的 JSON" };
 	const map = asRecord(raw.overrides);
-	if (!map) return { ok: false, error: "overrides must be a { modelId: { context?, maxTokens?, reasoning? } } map" };
+	if (!map) return { ok: false, error: "overrides 必须是 { modelId: { context?, maxTokens?, reasoning? } } 形式的映射" };
 	const out: Record<string, CustomModelOverride> = {};
 	for (const [key, value] of Object.entries(map)) {
 		const id = key.trim();
-		if (!id) return { ok: false, error: "override keys must be non-empty model ids" };
+		if (!id) return { ok: false, error: "override 的键必须是非空的模型 id" };
 		const entry = asRecord(value);
-		if (!entry) return { ok: false, error: `override for ${id} must be an object` };
+		if (!entry) return { ok: false, error: `${id} 的 override 必须是对象` };
 		const pin: CustomModelOverride = {};
 		for (const field of ["context", "maxTokens"] as const) {
 			const v = entry[field];
@@ -473,13 +473,13 @@ export function parseCustomModelOverridesBody(
 			if (typeof v !== "number" || !Number.isInteger(v) || v < CUSTOM_MODEL_PIN_FLOOR) {
 				return {
 					ok: false,
-					error: `${field} for ${id} must be a whole number of tokens at least ${CUSTOM_MODEL_PIN_FLOOR}`,
+					error: `${id} 的 ${field} 必须是不小于 ${CUSTOM_MODEL_PIN_FLOOR} 的整数 token 数`,
 				};
 			}
 			pin[field] = v;
 		}
 		if (entry.reasoning !== undefined) {
-			if (typeof entry.reasoning !== "boolean") return { ok: false, error: `reasoning for ${id} must be true or false` };
+			if (typeof entry.reasoning !== "boolean") return { ok: false, error: `${id} 的 reasoning 必须是 true 或 false` };
 			pin.reasoning = entry.reasoning;
 		}
 		Object.defineProperty(out, id, { value: pin, enumerable: true, configurable: true, writable: true });

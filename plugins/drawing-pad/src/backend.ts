@@ -16,14 +16,14 @@ export function activate(ctx: PluginBackendContext): () => void {
   }
   let disposed = false;
   const assertActive = () => {
-    if (disposed || ctx.signal.aborted) throw new Error("Drawing Pad is disabled.");
+    if (disposed || ctx.signal.aborted) throw new Error("Drawing Pad 已停用。");
   };
   const get = ctx.handle("get-settings", () => { assertActive(); return { ...settings }; });
   const poses = ctx.handle("get-session-poses", input => {
     assertActive();
     if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).length !== 1 ||
       !("sessionId" in input) || typeof input.sessionId !== "string" || !/^[A-Za-z0-9_-]+$/.test(input.sessionId))
-      throw new Error("Expected a valid sessionId.");
+      throw new Error("需要一个有效的 sessionId。");
     const record = ctx.learning.getSession(input.sessionId);
     return { sessionId: input.sessionId, poses: record?.kind === "practice" ? acceptedPoseKeys(record.messages) : [] };
   });
@@ -32,7 +32,7 @@ export function activate(ctx: PluginBackendContext): () => void {
     const next = { ...settings, ...change, revision: settings.revision + 1 };
     if (next.darkInkColor === settings.darkInkColor && next.lightInkColor === settings.lightInkColor &&
       next.imageScale === settings.imageScale) return { ...settings };
-    if (settings.revision === Number.MAX_SAFE_INTEGER) throw new Error("Settings revision limit reached.");
+    if (settings.revision === Number.MAX_SAFE_INTEGER) throw new Error("设置修订号已达上限。");
     fs.mkdirSync(ctx.dataDirectory, { recursive: true });
     const temporary = path.join(ctx.dataDirectory, `.settings-${randomUUID()}.tmp`);
     try {

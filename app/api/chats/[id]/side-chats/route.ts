@@ -18,7 +18,7 @@ import { sideChats } from "@/src/server";
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
 	const { id } = await ctx.params;
 	const listed = sideChats.list(id);
-	if (!listed) return Response.json({ error: "Unknown chat" }, { status: 404 });
+	if (!listed) return Response.json({ error: "会话不存在" }, { status: 404 });
 	return Response.json(listed);
 }
 

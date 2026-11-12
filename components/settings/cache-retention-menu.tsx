@@ -3,14 +3,14 @@
 import type { CacheRetention } from "@earendil-works/pi-ai";
 
 const OPTIONS = [
-	{ value: undefined, compact: "default", label: "Pi default", description: "Leave the option unset. Pi’s normal behavior and environment override apply." },
-	{ value: "none", compact: "not requested", label: "Don’t request caching", description: "Pass Pi’s native none preference. Providers may still cache automatically." },
-	{ value: "short", compact: "short", label: "Short retention", description: "Pass Pi’s native short preference. The duration depends on the provider and model." },
-	{ value: "long", compact: "long", label: "Long retention", description: "Pass Pi’s native long preference. Cache-write costs may be higher." },
+	{ value: undefined, compact: "默认", label: "Pi 默认", description: "不设置该选项，沿用 Pi 的默认行为与环境变量覆盖。" },
+	{ value: "none", compact: "未请求", label: "不请求缓存", description: "传入 Pi 原生的 none 偏好。服务商仍可能自动缓存。" },
+	{ value: "short", compact: "短", label: "短期保留", description: "传入 Pi 原生的 short 偏好。时长取决于服务商与模型。" },
+	{ value: "long", compact: "长", label: "长期保留", description: "传入 Pi 原生的 long 偏好。缓存写入费用可能更高。" },
 ] as const;
 
 export function cacheRetentionLabel(value: CacheRetention | undefined): string {
-	return `Cache: ${OPTIONS.find((option) => option.value === value)!.compact}`;
+	return `缓存：${OPTIONS.find((option) => option.value === value)!.compact}`;
 }
 
 export function CacheRetentionMenu({ value, onPick }: {
@@ -19,8 +19,8 @@ export function CacheRetentionMenu({ value, onPick }: {
 }) {
 	return <>
 		<div className="border-b border-border px-2 pb-2">
-			<p className="text-card-foreground">Cache retention</p>
-			<p className="mt-1 text-muted-foreground">Controls the cache-retention preference sent to Pi. Support and duration depend on the provider and model. This does not guarantee a cache hit.</p>
+			<p className="text-card-foreground">缓存保留</p>
+			<p className="mt-1 text-muted-foreground">控制发送给 Pi 的缓存保留偏好。支持情况与时长取决于服务商与模型，且不保证缓存命中。</p>
 		</div>
 		{OPTIONS.map((option) => <button
 			key={option.value ?? "default"}

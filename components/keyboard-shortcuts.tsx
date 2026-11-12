@@ -171,9 +171,9 @@ function CheatSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
 	const { rows: pluginRows } = usePluginShortcutRows();
 	const scopes = ["global", "chat", "graph"] as const;
 	const scopeLabels: Record<(typeof scopes)[number], string> = {
-		global: "Global",
-		chat: "Chat",
-		graph: "Graph view",
+		global: "全局",
+		chat: "会话",
+		graph: "图谱视图",
 	};
 	return (
 		<HostDialog open={open} onClose={() => { onClose(); return "closed"; }} aria-labelledby={headingId}
@@ -187,8 +187,8 @@ function CheatSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
 			/>}
 		>
 				<div className="mb-4 flex items-baseline justify-between">
-					<span id={headingId} role="heading" aria-level={2} className="text-sm font-medium text-card-foreground">Keyboard shortcuts</span>
-					<span className="text-xs text-muted-foreground">Esc to close</span>
+					<span id={headingId} role="heading" aria-level={2} className="text-sm font-medium text-card-foreground">键盘快捷键</span>
+					<span className="text-xs text-muted-foreground">按 Esc 关闭</span>
 				</div>
 				{scopes.map((scope) => {
 					const actions = KEYBOARD_ACTIONS.filter((a) => a.scope === scope);
@@ -214,8 +214,8 @@ function CheatSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
 				{[...new Set(pluginRows.map(row => row.pluginId))].map(pluginId => <div key={pluginId} className="mb-4" data-testid={`kbd-cheat-plugin-${pluginId}`}>
 					<div className="mb-1.5 text-xs uppercase tracking-widest text-muted-foreground/70">{pluginRows.find(row => row.pluginId === pluginId)!.pluginName}</div>
 					{pluginRows.filter(row => row.pluginId === pluginId).map(row => <div key={row.id} className="mb-1 text-sm">
-						<div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">{row.name}</span><kbd className="rounded-md border border-border bg-background px-1.5 py-0.5 font-mono text-xs text-card-foreground">{row.binding ? formatBinding(row.binding) : "Unbound"}</kbd></div>
-						<div className="text-xs text-muted-foreground/70">{pluginShortcutScopeLabel(row)}{row.reason ? ` · Inactive: ${row.reason}` : ""}</div>
+						<div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">{row.name}</span><kbd className="rounded-md border border-border bg-background px-1.5 py-0.5 font-mono text-xs text-card-foreground">{row.binding ? formatBinding(row.binding) : "未绑定"}</kbd></div>
+						<div className="text-xs text-muted-foreground/70">{pluginShortcutScopeLabel(row)}{row.reason ? ` · 未启用：${row.reason}` : ""}</div>
 					</div>)}
 				</div>)}
 		</HostDialog>

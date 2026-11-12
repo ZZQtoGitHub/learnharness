@@ -49,7 +49,7 @@ export class Sheets {
       state = { id, kind, tool: "pen", pan: { x: 0, y: 0 }, seenPoses: new Set(), sentSignature: "", readTicket: 0 };
       this.sessions.set(id, state);
     }
-    if (state.kind !== kind) throw new Error("Drawing session kind changed.");
+    if (state.kind !== kind) throw new Error("绘图会话类型已改变。");
     return state;
   }
   setColor(color: string): void {

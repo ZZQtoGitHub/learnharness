@@ -695,7 +695,7 @@ await runPackagedProof(async ({ page, api, base, fixture, evidence, screenshot }
   assert.equal(coveredSource.pickerOwnsSourcePoint, true, 'Newer picker actually covers the older source field');
   assert.equal(coveredSource.sameNode && coveredSource.connected, true); assert.equal(coveredSource.draft, 'Retained native surface draft'); assert.equal(coveredSource.owner, retainedOwner);
   const coveredKeys = [];
-  await page.focus(`${knowledge} input[aria-label="Search nodes"]`);
+  await page.focus(`${knowledge} input[aria-label="搜索节点"]`);
   for (const command of ['Tab', 'Shift+Tab', 'Find']) {
     if (command === 'Tab') await page.keyboard.press('Tab');
     else if (command === 'Shift+Tab') { await page.keyboard.down('Shift'); await page.keyboard.press('Tab'); await page.keyboard.up('Shift'); }
@@ -867,7 +867,7 @@ await runPackagedProof(async ({ page, api, base, fixture, evidence, screenshot }
       await fill(composer, `Retained ${entry.id} body draft`);
       const underlyingDraft = await page.$(composer);
       if (entry.id === 'plugin-route') await page.$eval('[data-family="surfaces"]', node => node.scrollIntoView({ block: 'center' }));
-      const controls = entry.route === '/' ? ['[data-testid="open-chain-table"]', composer, ...(entry.rendering ? ['[aria-label="Search nodes"]'] : [])] : [entry.id === 'plugin-route' ? button('open-surface') : composer];
+      const controls = entry.route === '/' ? ['[data-testid="open-chain-table"]', composer, ...(entry.rendering ? ['[aria-label="搜索节点"]'] : [])] : [entry.id === 'plugin-route' ? button('open-surface') : composer];
       const bodyRegion = await page.$('[data-session-surface-region]');
       const heldGraphResponses = [];
       if (entry.draftPicker) {

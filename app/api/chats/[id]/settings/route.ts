@@ -26,7 +26,7 @@ import type { ChatSettings } from "@/src/core";
  */
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
-	if (!getChat(id)) return Response.json({ error: "Not found" }, { status: 404 });
+	if (!getChat(id)) return Response.json({ error: "未找到" }, { status: 404 });
 
 	const body = await req.json().catch(() => null);
 	const parsed = parseSettingsBody(body);

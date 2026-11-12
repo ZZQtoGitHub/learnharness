@@ -96,7 +96,7 @@ export function CitationCommentPopover({ target, transcript, composer, onClose, 
 	return (
 		<MenuShell testid="citation-comment-popover" anchorRef={anchorRef} getAnchorRect={getAnchorRect} preferredSide="down" align="right" menuClass="w-80 rounded-xl border bg-popover p-2 text-sm shadow-xl"
 			onClose={(reason) => dismissRef.current(reason === "escape" ? "escape" : "outside")}>
-			<div ref={rootRef} role="dialog" aria-label="Edit citation comment">
+			<div ref={rootRef} role="dialog" aria-label="编辑引用评论">
 				<CitationCommentEditor
 					initial={citation.comment}
 					onDraftChange={(draft) => { draftRef.current = draft; }}

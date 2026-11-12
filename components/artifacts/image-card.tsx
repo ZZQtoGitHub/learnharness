@@ -52,7 +52,7 @@ export function ImageCard({ part }: ArtifactPartProps) {
 	if (!isShowImageDetails(image)) {
 		return (
 			<div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
-				Image shown, but it could not be displayed.
+				图片已生成，但无法显示。
 			</div>
 		);
 	}
@@ -61,7 +61,7 @@ export function ImageCard({ part }: ArtifactPartProps) {
 
 function StoredImageCard({ details }: { details: ShowImageDetails }) {
 	const { image, failed } = useImageSnapshot(details.snapshotId);
-	if (!image) return <div className="my-4 text-sm text-muted-foreground" role="status">{failed ? "Image snapshot could not be loaded." : "Loading image…"}</div>;
+	if (!image) return <div className="my-4 text-sm text-muted-foreground" role="status">{failed ? "图片快照加载失败。" : "正在加载图片…"}</div>;
 	return <ImagePresentation image={{ ...image, path: details.path, caption: details.caption }} />;
 }
 
@@ -91,7 +91,7 @@ export function ImagePresentation({ image }: { image: ImageSnapshot & Pick<ShowI
 			</div>
 			<figcaption className="mt-2 flex w-0 min-w-full items-start justify-between gap-2">
 				<div className="flex min-w-0 items-baseline gap-2">
-					<span className="shrink-0 text-xs font-medium uppercase tracking-wide text-muted-foreground">Image</span>
+					<span className="shrink-0 text-xs font-medium uppercase tracking-wide text-muted-foreground">图片</span>
 					{image.caption && (
 						<span className="text-sm text-muted-foreground" data-testid="image-caption">
 							{image.caption}
@@ -101,8 +101,8 @@ export function ImagePresentation({ image }: { image: ImageSnapshot & Pick<ShowI
 				<div className="flex shrink-0 items-center gap-1.5">
 					<button
 						type="button"
-						aria-label="Download image"
-						title="Download image"
+						aria-label="下载图片"
+						title="下载图片"
 						onClick={save}
 						data-testid="image-download"
 						className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
@@ -112,8 +112,8 @@ export function ImagePresentation({ image }: { image: ImageSnapshot & Pick<ShowI
 					{overlay && (
 						<button
 							type="button"
-							aria-label="Open image fullscreen"
-							title="Open fullscreen"
+							aria-label="全屏查看图片"
+							title="全屏查看"
 							onClick={() => overlay.openFigure(imageSvgDocument(image), false)}
 							data-testid="image-open"
 							className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"

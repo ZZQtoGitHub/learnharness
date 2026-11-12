@@ -104,7 +104,7 @@ function connectionBackgroundAllowed(provider: string): boolean {
 }
 
 function settlementErrorText(error: unknown): string {
-	return error instanceof TurnPersistenceError ? error.message : "An error occurred.";
+	return error instanceof TurnPersistenceError ? error.message : "出错了。";
 }
 
 const jobRunner = createJobRunner({
@@ -190,10 +190,10 @@ export async function handleChatRequest(
 	try {
 		body = await req.json();
 	} catch {
-		return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+		return Response.json({ error: "请求体不是合法的 JSON" }, { status: 400 });
 	}
 	const chatId = typeof body.chatId === "string" ? body.chatId : "";
-	if (!chatId) return Response.json({ error: "Unknown chat" }, { status: 404 });
+	if (!chatId) return Response.json({ error: "会话不存在" }, { status: 404 });
 	let input: TurnInput;
 	try {
 		input = parseChatInput(body.input);
@@ -220,7 +220,7 @@ export async function handleChatInput(
 	await reconcilePluginQuestionCompatibility(stores.chatStore, chatId);
 	const initialRecord = stores.chatStore.getChat(chatId);
 	if (!initialRecord) {
-		return Response.json({ error: "Unknown chat" }, { status: 404 });
+		return Response.json({ error: "会话不存在" }, { status: 404 });
 	}
 	let record = initialRecord;
 
@@ -233,7 +233,7 @@ export async function handleChatInput(
 		if (input.type === "plugin-question-answer") {
 			const pending = pendingPluginQuestionOf(record.messages);
 			if (!pending || pending.questionId !== input.questionId || !samePluginQuestionOccurrence(pending.occurrence, input.occurrence))
-				throw new ChatInputError("This question is no longer pending. Sync the saved session before trying again.");
+				throw new ChatInputError("该问题已不再待答。请先同步已保存的会话再重试。");
 		}
 	}
 	catch (err) {
@@ -241,20 +241,20 @@ export async function handleChatInput(
 		throw err;
 	}
 	if ((input.type === "plugin-question-answer" || input.type === "plugin-problem-submission") && isTurnRunning(chatId))
-		return Response.json({ error: "A turn is already running for this session" }, { status: 409 });
+		return Response.json({ error: "该会话已有轮次正在运行" }, { status: 409 });
 	let questionResolver: QuestionTypeResolver | undefined;
 	let problemResolver: ProblemTypeResolver | undefined;
 	if (input.type === "plugin-problem-submission") {
 		try {
 			const host = await getPluginHost();
 			problemResolver = (pluginId, typeId, version) => host.resolveProblemType(pluginId, typeId, version);
-		} catch { return Response.json({ error: "Problem unavailable" }, { status: 400 }); }
+		} catch { return Response.json({ error: "题目当前不可用" }, { status: 400 }); }
 	}
 	if (input.type === "plugin-question-answer") {
 		try {
 			const host = await getPluginHost();
 			questionResolver = (pluginId, typeId, version) => host.resolveQuestionType(pluginId, typeId, version);
-		} catch { return Response.json({ error: "Question unavailable" }, { status: 400 }); }
+		} catch { return Response.json({ error: "问题当前不可用" }, { status: 400 }); }
 	}
 
 	// Refuse an ineligible Retry before catalog refresh, compaction, or any
@@ -304,7 +304,7 @@ export async function handleChatInput(
 	if (isSubscriptionProvider(conversation.provider)) {
 		await refreshConnectionCatalog(conversation.provider);
 		if (input.type === "steers" && !connectionBackgroundAllowed(conversation.provider)) {
-			return Response.json({ error: "Background use is off for this connection. Automatic follow-up remains deferred in its queue." }, { status: 403 });
+			return Response.json({ error: "该连接未开启后台运行。自动跟进将继续留在队列中等待。" }, { status: 403 });
 		}
 	}
 	if (!providerKeyPresent(conversation.provider)) {
@@ -339,7 +339,7 @@ export async function handleChatInput(
 		conversationEngine = piEngineForSpec(conversation, () => callPurpose.background, lifecycle, retentionForSlot("strong"));
 		compactionEngine = piEngineForSpec(conversation, true, undefined, retentionForSlot("strong"));
 	}
-	catch { return Response.json({ error: conversation.provider === "chatgpt" ? chatGPTStreamError("model catalog") : isSubscriptionProvider(conversation.provider) ? nativeSubscriptionError(conversation.provider, "model catalog") : "The selected model is unavailable." }, { status: 503 }); }
+	catch { return Response.json({ error: conversation.provider === "chatgpt" ? chatGPTStreamError("model catalog") : isSubscriptionProvider(conversation.provider) ? nativeSubscriptionError(conversation.provider, "model catalog") : "所选模型当前不可用。" }, { status: 503 }); }
 	const capturedPolicy = submissionImagePolicyKey(conversationEngine);
 	const capturedConversation = JSON.stringify(conversation);
 	try {
@@ -436,12 +436,12 @@ export async function handleChatInput(
 		}
 	}
 	const compactedRecord = stores.chatStore.getChat(chatId);
-	if (!compactedRecord) return Response.json({ error: "Unknown chat" }, { status: 404 });
+	if (!compactedRecord) return Response.json({ error: "会话不存在" }, { status: 404 });
 	record = compactedRecord;
 	// Final admission seam: every image/preflight await is over. Resolve via
 	// the SAME conversation chain, never a parallel role catalog. No await
 	// may intervene before the save-only write or beginTurn/write below.
-	const staleSubmission = () => Response.json({ code: "submission-stale", error: "The submission target or selected model changed. Your input has been kept." }, { status: 412 });
+	const staleSubmission = () => Response.json({ code: "submission-stale", error: "提交目标或所选模型已变化。你的输入已保留。" }, { status: 412 });
 	const submissionIsCurrent = (checkModel = true) => {
 		if (!freshSubmission) return true;
 		if (record.createdAt !== capturedSession.createdAt || record.kind !== capturedSession.kind) return false;
@@ -501,9 +501,9 @@ export async function handleChatInput(
 		// await above. No await separates this structural check from ownership
 		// or the save-only sibling branch below.
 		if (compactionInFlight(chatId))
-			return Response.json({ error: "A turn is already running for this session" }, { status: 409 });
+			return Response.json({ error: "该会话已有轮次正在运行" }, { status: 409 });
 		if ((input.type === "plugin-question-answer" || input.type === "plugin-problem-submission") && isTurnRunning(chatId))
-			return Response.json({ error: "A turn is already running for this session" }, { status: 409 });
+			return Response.json({ error: "该会话已有轮次正在运行" }, { status: 409 });
 		if (input.type === "plugin-question-answer" || input.type === "plugin-problem-submission") {
 			const questionSubmission = input.type === "plugin-question-answer" ? preparePluginQuestionSubmission({ id: chatId, messages: record.messages }, input, questionResolver!) : undefined;
 			const problemSubmission = input.type === "plugin-problem-submission" ? preparePluginProblemSubmission(record, input, problemResolver!) : undefined;
@@ -511,7 +511,7 @@ export async function handleChatInput(
 			const work = questionSubmission?.grade ?? problemSubmission?.process;
 			if (work) {
 				const claim = claimPreparingTurn(chatId);
-				if (!claim) return Response.json({ error: "A turn is already running for this session" }, { status: 409 });
+				if (!claim) return Response.json({ error: "该会话已有轮次正在运行" }, { status: 409 });
 				preparation = claim;
 				turnClaimed = true;
 				const outcome = await work(preparation.signal);
@@ -561,7 +561,7 @@ export async function handleChatInput(
 	// double-run the teacher and clobber the first turn's persist.
 	if (!preparation && !beginTurn(chatId)) {
 		console.info(`[chat ${chatId}] turn already in flight — request rejected`);
-		return Response.json({ error: "A turn is already running for this session" }, { status: 409 });
+		return Response.json({ error: "该会话已有轮次正在运行" }, { status: 409 });
 	}
 
 	turnClaimed = true;
@@ -839,7 +839,7 @@ export async function handleChatInput(
 				if (conversation.provider === "chatgpt") return chatGPTStreamError(String(error));
 				if (isSubscriptionProvider(conversation.provider)) return nativeSubscriptionError(conversation.provider, String(error));
 				console.error(`[chat ${chatId}] turn error:`, error);
-				return "An error occurred.";
+				return "出错了。";
 			},
 			onSettleError: settlementErrorText,
 			onSettleFailure: (error, reportedErrorText) => {
@@ -966,31 +966,31 @@ export async function handleChatInput(
 		// grading and the canonical save, then closes before teacher output. The
 		// turn itself is a server-side process (ruling 2026-09-25) — it never
 		// needed this connection, only a view did.
-		if (stagedAutomatic && requestCycle && !(await requestCycle.admission)) return Response.json({ error: "Automatic follow-up remains deferred in its queue." }, { status: 403 });
+		if (stagedAutomatic && requestCycle && !(await requestCycle.admission)) return Response.json({ error: "自动跟进将继续留在队列中等待。" }, { status: 403 });
 		return Response.json({ ok: true });
 	} catch (err) {
 		console.error(`[chat ${chatId}] turn failed to start:`, err);
 		if (preparation && inputSaved) {
 			// The answer and outcome are already durable. Report the later
 			// teacher failure through the existing retained stream notice.
-			rememberTurnFailure(chatId, "Failed to start the turn");
+			rememberTurnFailure(chatId, "轮次启动失败");
 			return Response.json({ ok: true });
 		}
-		return Response.json({ error: "Failed to start the turn" }, { status: 500 });
+		return Response.json({ error: "轮次启动失败" }, { status: 500 });
 	}
 	} catch (err) {
 		if (preparation && inputSaved) {
 			console.error(`[chat ${chatId}] accepted answer continuation failed:`, err);
-			rememberTurnFailure(chatId, "Failed to start the turn");
+			rememberTurnFailure(chatId, "轮次启动失败");
 			return Response.json({ ok: true });
 		}
 		if (err instanceof ChatInputError) return Response.json({ error: err.message }, { status: 400 });
 		if (preparation?.signal.aborted) {
-			return Response.json({ error: preparation.signal.reason instanceof Error ? preparation.signal.reason.message : "Question unavailable" }, { status: 409 });
+			return Response.json({ error: preparation.signal.reason instanceof Error ? preparation.signal.reason.message : "问题当前不可用" }, { status: 409 });
 		}
 		if (turnClaimed) {
 			console.error(`[chat ${chatId}] turn failed to start:`, err);
-			return Response.json({ error: "Failed to start the turn" }, { status: 500 });
+			return Response.json({ error: "轮次启动失败" }, { status: 500 });
 		}
 		throw err;
 	} finally {

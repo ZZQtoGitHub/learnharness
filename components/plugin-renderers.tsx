@@ -53,7 +53,7 @@ export function PluginCodeBlock({ language, source, meta, incomplete, fallback }
  * payload exists. Never serialize image bytes/base64 into the transcript. */
 export function nativeToolResultText(result: PluginToolRenderProps["result"]): string | undefined {
 	if (!result) return;
-	return result.content.map(block => block.type === "text" ? block.text : `[Image attached to the model: ${block.mimeType}]`).join("\n");
+	return result.content.map(block => block.type === "text" ? block.text : `[图片已附给模型：${block.mimeType}]`).join("\n");
 }
 
 export function toolFallbackPart(part: LhViewPart): ArtifactPartProps["part"] {
@@ -90,7 +90,7 @@ export function PluginToolRenderer({ part, fallback: suppliedFallback }: { part:
 		jobs.some(job => job.kind === "plugin" && job.toolCallId === part.toolCallId) ||
 		(ack !== null && typeof ack === "object" && typeof ack.jobId === "string" && ack.dispatched === true)
 	);
-	if (part.pluginQuestion) return <p role="status" className="text-xs text-muted-foreground">Question unavailable</p>;
+	if (part.pluginQuestion) return <p role="status" className="text-xs text-muted-foreground">问题不可用</p>;
 	const fallback = suppliedFallback ?? (dispatched
 		? <DispatchCard kind="plugin" toolCallId={part.toolCallId ?? ""} />
 		: <ToolCallCard part={toolFallbackPart(part)} />);
@@ -108,7 +108,7 @@ function isToolState(state: unknown): state is PluginToolRenderProps["state"] {
 export function ToolPartRenderer({ part }: { part: LhViewPart }) {
 	// Attempts/unreadable metadata must never fall through to raw payloads or
 	// validator error text, including when the renderer is missing.
-	if (part.pluginQuestion) return <p role="status" className="text-xs text-muted-foreground">Question unavailable</p>;
+	if (part.pluginQuestion) return <p role="status" className="text-xs text-muted-foreground">问题不可用</p>;
 	const toolName = part.type.slice("tool-".length);
 	const Builtin = Object.hasOwn(artifactRenderers, toolName) ? artifactRenderers[toolName] : undefined;
 	const reserved = Builtin || toolName === "plan_init" || (QUESTION_TOOLS as readonly string[]).includes(toolName);

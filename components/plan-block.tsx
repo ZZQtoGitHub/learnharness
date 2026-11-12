@@ -539,7 +539,7 @@ export function PlanDiagram({
 						: {}),
 			}}
 			role="img"
-			aria-label="Plan diagram"
+			aria-label="计划图"
 		>
 			<defs>
 				<marker
@@ -679,11 +679,11 @@ export function PlanBlock({ data, onOpen }: { data: PlanBlockData; onOpen: () =>
 	const statusMap = useMemo(() => new Map(data.nodes.map((n) => [n.id, n.status] as const)), [data]);
 	const statusOf = (id: string): PlanNodeStatus => statusMap.get(id) ?? "upcoming";
 	return (
-		<Hint label="Open the full plan" side="bottom">
+		<Hint label="打开完整计划" side="bottom">
 <button
 			type="button"
 			data-testid="plan-block-full"
-			aria-label="Open the full plan"
+			aria-label="打开完整计划"
 			onClick={onOpen}
 			className="block w-full text-left"
 		>
@@ -876,19 +876,19 @@ export function PlanPopup({ messages, onClose }: { messages: readonly PopupMessa
 			// Ranked inside the session's bounded view stack, below app modals.
 			style={{ zIndex: 100 + layer.order }}
 			role="region"
-			aria-label="The full plan"
+			aria-label="完整计划"
 			onClick={(e) => {
 				if (e.target === e.currentTarget) onClose();
 			}}
 		>
 			<div className="mb-2 flex items-center gap-2">
-				<span className="text-sm font-medium">The plan</span>
-				<span className="text-xs text-muted-foreground">live — statuses derive from your check outcomes</span>
-				<Hint label="Close" binding="escape" side="left">
+				<span className="text-sm font-medium">计划</span>
+				<span className="text-xs text-muted-foreground">实时——状态由你的检查结果推导</span>
+				<Hint label="关闭" binding="escape" side="left">
 <button
 					type="button"
 					onClick={onClose}
-					aria-label="Close"
+					aria-label="关闭"
 					data-testid="plan-popup-close"
 					className="ml-auto rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
 				>
@@ -936,22 +936,22 @@ export function PlanPopup({ messages, onClose }: { messages: readonly PopupMessa
 							/>
 						</div>
 						<div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between p-2">
-							<span className="text-xs text-muted-foreground/60">Drag to pan · scroll to zoom</span>
+							<span className="text-xs text-muted-foreground/60">拖动平移 · 滚轮缩放</span>
 							<div className="flex gap-1">
-								<Hint label="Zoom out" side="bottom">
+								<Hint label="缩小" side="bottom">
 <button
 									type="button"
-									aria-label="Zoom out"
+									aria-label="缩小"
 									onClick={() => stepZoom(1 / 1.25)}
 									className="pointer-events-auto flex size-7 items-center justify-center rounded-md border border-border/70 bg-card/80 text-muted-foreground backdrop-blur transition-colors hover:bg-accent hover:text-foreground"
 								>
 									<MinusIcon className="size-3.5" />
 								</button>
 </Hint>
-								<Hint label="Fit plan to screen" side="bottom">
+								<Hint label="适应屏幕" side="bottom">
 <button
 									type="button"
-									aria-label="Fit plan to screen"
+									aria-label="适应屏幕"
 									onClick={fitView}
 									data-testid="plan-popup-fit"
 									className="pointer-events-auto flex size-7 items-center justify-center rounded-md border border-border/70 bg-card/80 text-muted-foreground backdrop-blur transition-colors hover:bg-accent hover:text-foreground"
@@ -959,10 +959,10 @@ export function PlanPopup({ messages, onClose }: { messages: readonly PopupMessa
 									<MaximizeIcon className="size-3.5" />
 								</button>
 </Hint>
-								<Hint label="Zoom in" side="bottom">
+								<Hint label="放大" side="bottom">
 <button
 									type="button"
-									aria-label="Zoom in"
+									aria-label="放大"
 									onClick={() => stepZoom(1.25)}
 									className="pointer-events-auto flex size-7 items-center justify-center rounded-md border border-border/70 bg-card/80 text-muted-foreground backdrop-blur transition-colors hover:bg-accent hover:text-foreground"
 								>
@@ -974,7 +974,7 @@ export function PlanPopup({ messages, onClose }: { messages: readonly PopupMessa
 					</>
 				) : (
 					<div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-						No plan in this session yet.
+						本次会话还没有计划。
 					</div>
 				)}
 			</div>

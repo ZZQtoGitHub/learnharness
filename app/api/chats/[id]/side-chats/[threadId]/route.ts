@@ -17,8 +17,8 @@ export async function PATCH(request: Request, ctx: Ctx): Promise<Response> {
 		throw err;
 	}
 	const result = sideChats.setOpen(id, threadId, open);
-	if (result === "unknown-chat") return Response.json({ error: "Unknown chat" }, { status: 404 });
-	if (result === "unknown-thread") return Response.json({ error: "Unknown side thread" }, { status: 404 });
+	if (result === "unknown-chat") return Response.json({ error: "会话不存在" }, { status: 404 });
+	if (result === "unknown-thread") return Response.json({ error: "旁支讨论不存在" }, { status: 404 });
 	return Response.json({ thread: result });
 }
 

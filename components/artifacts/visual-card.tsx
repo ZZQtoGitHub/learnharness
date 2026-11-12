@@ -75,7 +75,7 @@ export function VisualOutputCard({
 	if (!result || typeof result.svg !== "string") {
 		return (
 			<div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
-				Figure completed, but the result could not be displayed.
+				图表已完成，但结果无法显示。
 			</div>
 		);
 	}
@@ -88,14 +88,14 @@ export function VisualOutputCard({
 		return (
 			<div className="rounded-xl border bg-card p-4 text-card-foreground" data-testid="visual-card-failed">
 				<div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-					Figure
-					<span className="rounded bg-error/15 px-1.5 py-0.5 text-error">failed</span>
+					图表
+					<span className="rounded bg-error/15 px-1.5 py-0.5 text-error">失败</span>
 				</div>
-				<p className="mt-2 text-sm text-muted-foreground">{result.notes ?? "The figure could not be drawn."}</p>
+				<p className="mt-2 text-sm text-muted-foreground">{result.notes ?? "图表无法绘制。"}</p>
 			</div>
 		);
 	}
-	if (result.image && !snapshot.image) return <div className="my-4 text-sm text-muted-foreground" role="status">{snapshot.failed ? "Image snapshot could not be loaded." : "Loading image…"}</div>;
+	if (result.image && !snapshot.image) return <div className="my-4 text-sm text-muted-foreground" role="status">{snapshot.failed ? "图片快照加载失败。" : "正在加载图片…"}</div>;
 	return (
 		/* NO CARD CHROME (owner round, 2026-10-07): the figure is document
 		   material — no border, no padding box. Image first, then the CAPTION
@@ -140,7 +140,7 @@ export function VisualOutputCard({
 					? "mt-2 flex w-0 min-w-full flex-wrap items-center justify-between gap-2"
 					: "mt-2 flex items-center justify-between gap-2"
 			}>
-				<div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Figure</div>
+				<div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">图表</div>
 				<div className={!invertible ? "ml-auto flex items-center gap-1.5" : "flex items-center gap-1.5"}>
 					{/* The invert affordance (owner round, 2026-10-07): the disc IS
 					    the half-filled contrast circle; the tooltip names it. */}
@@ -148,15 +148,16 @@ export function VisualOutputCard({
 						<Toggle
 							checked={inverted}
 							onChange={toggleInverted}
-							label="Invert figure brightness"
-							title="Invert colors"
+							label="反转图表亮度"
+							testid="toggle-invert-figure-brightness"
+							title="反转颜色"
 							discIcon={<InvertDiscIcon className="size-3" />}
 						/>
 					)}
 					<button
 						type="button"
-						aria-label="Download figure as SVG"
-						title="Download as SVG"
+						aria-label="将图表下载为 SVG"
+						title="下载为 SVG"
 						onClick={() => downloadFile("figure.svg", svg, "image/svg+xml")}
 						data-testid="visual-download"
 						className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
@@ -166,8 +167,8 @@ export function VisualOutputCard({
 					{overlay && (
 						<button
 							type="button"
-							aria-label="Open figure fullscreen"
-							title="Open fullscreen"
+							aria-label="全屏查看图表"
+							title="全屏查看"
 							onClick={() => overlay.openFigure(svg, shownInverted)}
 							data-testid="visual-open"
 							className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"

@@ -53,9 +53,9 @@ export function CitationCommentEditor({ initial, onDraftChange, onSave, onCancel
 				ref={areaRef}
 				value={draft}
 				rows={2}
-				aria-label="Comment on selected text"
-				aria-description="Enter to save the citation comment; Command/Ctrl+Enter to save and send; Shift+Enter for a new line."
-				placeholder="Add an optional comment..."
+				aria-label="为选中文字添加评论"
+				aria-description="Enter 保存引用评论；Command/Ctrl+Enter 保存并发送；Shift+Enter 换行。"
+				placeholder="添加评论（可选）…"
 				className="field-sizing-content max-h-40 min-h-16 w-full resize-none rounded-md border bg-background px-2 py-1.5 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
 				onChange={(event) => { setDraft(event.target.value); onDraftChange(event.target.value); }}
 				onKeyDown={(event) => {
@@ -69,12 +69,12 @@ export function CitationCommentEditor({ initial, onDraftChange, onSave, onCancel
 				}}
 			/>
 			{tooLong ? (
-				<p role="status" className="text-xs text-destructive">Comments can contain up to 8,000 characters.</p>
+				<p role="status" className="text-xs text-destructive">评论最多 8,000 个字符。</p>
 			) : null}
 			<div className="flex justify-end gap-2">
-				<Button type="button" size="xs" variant="outline" onPointerDown={(event) => event.preventDefault()} onClick={onCancel}>Cancel</Button>
+				<Button type="button" size="xs" variant="outline" onPointerDown={(event) => event.preventDefault()} onClick={onCancel}>取消</Button>
 				<Button type="button" size="xs" disabled={tooLong} onPointerDown={(event) => event.preventDefault()} onClick={() => onSave(draft, false)}>
-					{tooLong ? "Shorten comment" : "Save"}
+					{tooLong ? "缩短评论" : "保存"}
 				</Button>
 			</div>
 		</div>

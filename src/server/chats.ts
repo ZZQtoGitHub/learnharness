@@ -75,7 +75,7 @@ export function runningWorkBlocker(chatId: string): Extract<ChatDeleteOutcome, {
 			ok: false,
 			status: 409,
 			code: "turn_in_flight",
-			error: "A turn is running in this session — try again when it finishes",
+			error: "该会话有轮次正在运行——请等它结束后再试",
 			jobIds: [],
 		};
 	}
@@ -89,7 +89,7 @@ export function runningWorkBlocker(chatId: string): Extract<ChatDeleteOutcome, {
 			ok: false,
 			status: 409,
 			code: "jobs_running",
-			error: "Background jobs are still running in this session — try again when they finish",
+			error: "该会话仍有后台任务在运行——请等它们结束后再试",
 			jobIds: runningJobs.map((job) => job.id),
 		};
 	}
@@ -98,7 +98,7 @@ export function runningWorkBlocker(chatId: string): Extract<ChatDeleteOutcome, {
 
 export async function deleteChatSession(chatId: string, mode: ChatDeleteMode): Promise<ChatDeleteOutcome> {
 	if (!stores.chatStore.getChat(chatId)) {
-		return { ok: false, status: 404, code: "not_found", error: "No such session" };
+		return { ok: false, status: 404, code: "not_found", error: "会话不存在" };
 	}
 	const blocker = runningWorkBlocker(chatId);
 	if (blocker) return blocker;
@@ -111,7 +111,7 @@ export async function deleteChatSession(chatId: string, mode: ChatDeleteMode): P
 					ok: false,
 					status: 503,
 					code: "extraction_winding_down",
-					error: "The session's extraction is still winding down — try again in a moment",
+					error: "该会话的提取仍在收尾——请稍后重试",
 				};
 			}
 			await new Promise((resolve) => setTimeout(resolve, WIND_DOWN_POLL_MS));
@@ -129,10 +129,10 @@ export async function deleteChatSession(chatId: string, mode: ChatDeleteMode): P
 /** Source deletion has already purged the selected batch's graph traces.
  * Remove the remaining session data with the same gates/cleanup and no await. */
 export function deleteIdleChatRecord(chatId: string): Extract<ChatDeleteOutcome, { ok: false }> | { ok: true } {
-	if (!stores.chatStore.getChat(chatId)) return { ok: false, status: 404, code: "not_found", error: "No such session" };
+	if (!stores.chatStore.getChat(chatId)) return { ok: false, status: 404, code: "not_found", error: "会话不存在" };
 	const blocker = runningWorkBlocker(chatId);
 	if (blocker) return blocker;
-	if (extractionStatuses().some((run) => run.chatId === chatId)) return { ok: false, status: 503, code: "extraction_winding_down", error: "The session's extraction is still winding down — try again in a moment" };
+	if (extractionStatuses().some((run) => run.chatId === chatId)) return { ok: false, status: 503, code: "extraction_winding_down", error: "该会话的提取仍在收尾——请稍后重试" };
 	finishChatRecordDeletion(chatId);
 	// ChatStore can swallow unlink failures. Do not tell source deletion to
 	// discard placement/folders while the conversation still exists.

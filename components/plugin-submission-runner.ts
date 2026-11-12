@@ -98,19 +98,19 @@ export class SubmissionAttempt {
 				open = false;
 				if (this.signal.aborted || !owner.isCurrent() || !this.current()) { this.cancel(); throw aborted(); }
 				owner.report(error); this.cancel();
-				throw new Error(`Could not prepare submission (${owner.pluginName}): ${error instanceof Error ? error.message : String(error)}. Your input has been kept.`);
+				throw new Error(`无法准备提交（${owner.pluginName}）: ${error instanceof Error ? error.message : String(error)}。你的输入已保留。`);
 			}
 		}
 		this.check(); return result;
 	}
 	preparationFailure(error: unknown): Error {
 		const message = error instanceof Error ? error.message : String(error);
-		if (message.startsWith("Could not prepare submission (")) return error as Error;
+		if (message.startsWith("无法准备提交（")) return error as Error;
 		if (this.lastOwner) {
 			this.lastOwner.report(error);
-			return new Error(`Could not prepare submission (${this.lastOwner.pluginName}): ${message}. Your input has been kept.`);
+			return new Error(`无法准备提交（${this.lastOwner.pluginName}）: ${message}。你的输入已保留。`);
 		}
-		return new Error(`${message}${message.includes("Your input has been kept.") ? "" : ". Your input has been kept."}`);
+		return new Error(`${message}${message.includes("你的输入已保留。") ? "" : "。你的输入已保留。"}`);
 	}
 	/** Freeze observer registration before the first POST. */
 	deliver() { this.check(); this.phase = "delivering"; this.changed(); }

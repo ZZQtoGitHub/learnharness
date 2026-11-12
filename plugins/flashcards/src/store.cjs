@@ -55,10 +55,10 @@ function openStore(directory) {
   let state;
   try { state = JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch (error) {
-    if (error.code !== 'ENOENT') throw new Error(`Could not read Flashcards data: ${error.message}`);
+    if (error.code !== 'ENOENT') throw new Error(`无法读取 Flashcards 数据：${error.message}`);
     state = { version: 1, revision: 0, settings: defaults(), decks: [], propositions: {}, reviews: [], batches: [] };
   }
-  if (state.version !== 1 || !Number.isSafeInteger(state.revision) || !Array.isArray(state.decks) || !Array.isArray(state.reviews) || !Array.isArray(state.batches) || !state.propositions || !state.settings) throw new Error('Unsupported or invalid Flashcards data. No data was changed.');
+  if (state.version !== 1 || !Number.isSafeInteger(state.revision) || !Array.isArray(state.decks) || !Array.isArray(state.reviews) || !Array.isArray(state.batches) || !state.propositions || !state.settings) throw new Error('Flashcards 数据不受支持或已损坏。未改动任何数据。');
   const migrated = structuredClone(state);
   if (migrate(migrated)) {
     migrated.revision++;
@@ -66,7 +66,7 @@ function openStore(directory) {
     state = migrated;
   }
   const sourceFile = id => {
-    if (typeof id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error('Invalid file source ID.');
+    if (typeof id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error('文件资料 ID 无效。');
     return path.join(directory, 'sources', `${id}.md`);
   };
   return {

@@ -33,10 +33,10 @@ export function GraphContextCard({ data }: { data: GraphContextData }) {
 				className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border/70 px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
 			>
 				<ChevronRightIcon aria-hidden="true" className={cn("size-3.5 shrink-0 transition-transform", open && "rotate-90")} />
-				<span className="font-medium">Graph context</span>
+				<span className="font-medium">图谱上下文</span>
 				<span className="min-w-0 flex-1 truncate">
-					{noun(propositions.length, "proposition", "propositions")}
-					{chains.length > 0 ? ` · ${noun(chains.length, "chain", "chains")}` : ""}
+					{noun(propositions.length, "个命题", "个命题")}
+					{chains.length > 0 ? ` · ${noun(chains.length, "条推理链", "条推理链")}` : ""}
 				</span>
 			</button>
 			{open && (

@@ -26,7 +26,7 @@ function slugify(title: string): string {
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
 	const { id } = await ctx.params;
 	const record = getChat(id);
-	if (!record) return Response.json({ error: "Unknown chat" }, { status: 404 });
+	if (!record) return Response.json({ error: "会话不存在" }, { status: 404 });
 	const markdown = sessionMarkdown(record.messages, { title: record.title, anchors: false });
 	return new Response(markdown, {
 		headers: {

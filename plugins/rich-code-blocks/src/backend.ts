@@ -19,11 +19,11 @@ export function activate(ctx: PluginBackendContext): () => void {
       instructionDisposers.push(ctx.registerInstructions({ agents: ["prober", "teacher", "practice"], text: INSTRUCTIONS[family] }));
     }
   };
-  const assertActive = () => { if (ctx.signal.aborted) throw new Error("Rich code blocks is disabled."); };
+  const assertActive = () => { if (ctx.signal.aborted) throw new Error("Rich code blocks 已停用。"); };
   updateInstructions();
   const unregisterGet = ctx.handle("get-settings", () => { assertActive(); return { ...settings }; });
   const nextRevision = () => {
-    if (settings.revision === Number.MAX_SAFE_INTEGER) throw new Error("Settings revision limit reached.");
+    if (settings.revision === Number.MAX_SAFE_INTEGER) throw new Error("设置修订号已达上限。");
     return settings.revision + 1;
   };
   const commit = (next: Settings, instructionsChanged = false) => {

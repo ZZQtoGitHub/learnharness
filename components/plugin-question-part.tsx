@@ -22,7 +22,7 @@ export function PluginQuestionPart({ part, chatId }: { part: LhViewPart; chatId:
 			</>;
 		}
 		const cancellation = readPluginQuestionCancellation(part.result?.details ?? part.output, snapshot);
-		if (cancellation) return <p className="py-1 text-xs text-muted-foreground">Question dismissed</p>;
+		if (cancellation) return <p className="py-1 text-xs text-muted-foreground">已关闭该问题</p>;
 	}
-	return <p role="status" className="py-1 text-xs text-muted-foreground">{annotation.status === "unreadable" || part.state === "output-error" ? "Question unavailable" : "Preparing question…"}</p>;
+	return <p role="status" className="py-1 text-xs text-muted-foreground">{annotation.status === "unreadable" || part.state === "output-error" ? "问题不可用" : "正在准备问题…"}</p>;
 }

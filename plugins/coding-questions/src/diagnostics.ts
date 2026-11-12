@@ -25,7 +25,7 @@ export function syntaxDiagnostics(state: EditorState): Diagnostic[] {
       const key = `${node.from}:${node.to}`;
       if (seen.has(key)) return;
       seen.add(key);
-      diagnostics.push({ from: node.from, to: node.to, severity: "error", message: "Syntax problem." });
+      diagnostics.push({ from: node.from, to: node.to, severity: "error", message: "语法问题。" });
     },
   });
   return diagnostics;

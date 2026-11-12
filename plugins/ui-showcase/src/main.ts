@@ -19,14 +19,14 @@ export function activate(ctx: PluginFrontendContext): () => void {
   if (scope.signal.aborted) return scope.dispose;
   // Targets identify mounted page lifetimes. Retired pages must not be retained.
   const surfaces = new WeakMap<PluginSurfaceTarget, ReturnType<typeof openSurfaceDemo>>();
-  scope.own(ctx.registerView({ id: "gallery", name: "UI Showcase", mount: (root, signal) => mountGallery(root, ctx, signal) }));
-  scope.own(ctx.registerAction({ id: "open-gallery", name: "UI Showcase", run: () => ctx.app.openView("gallery") }));
+  scope.own(ctx.registerView({ id: "gallery", name: "界面展示", mount: (root, signal) => mountGallery(root, ctx, signal) }));
+  scope.own(ctx.registerAction({ id: "open-gallery", name: "界面展示", run: () => ctx.app.openView("gallery") }));
   scope.own(ctx.placeAction({ id: "gallery-sidebar", actionId: "open-gallery", location: "sidebar" }));
   scope.own(ctx.registerAction({
-    id: "open-surface", name: "UI Showcase surface",
+    id: "open-surface", name: "界面展示面板",
     run(context) {
       if (context.placement !== "top-bar" || context.surface !== "session") {
-        throw new Error("UI Showcase surface requires a native session top-bar context.");
+        throw new Error("界面展示面板需要原生会话的顶栏上下文。");
       }
       if (scope.signal.aborted) return;
       const target = context.surfaceTarget, existing = surfaces.get(target);
@@ -48,5 +48,5 @@ export function activate(ctx: PluginFrontendContext): () => void {
 }
 
 function missingCapabilities(names: string): never {
-  throw new Error(`UI Showcase requires the current feature/plugin-architecture public UI API. Missing capabilities: ${names}. No fallback UI is provided.`);
+  throw new Error(`界面展示需要当前的 feature/plugin-architecture 公共 UI API。缺少能力：${names}。不提供降级界面。`);
 }

@@ -128,7 +128,7 @@ export type DiscoverResult =
  *  body → honest error, never a silent empty list. */
 export async function discoverModels(baseUrl: string, apiKey?: string): Promise<DiscoverResult> {
 	const base = normalizeBaseUrl(baseUrl);
-	if (!base) return { ok: false, error: "Base URL must be a valid http(s) URL" };
+	if (!base) return { ok: false, error: "Base URL 必须是合法的 http(s) 链接" };
 	const key = apiKey?.trim();
 	const controller = new AbortController();
 	const timer = setTimeout(() => controller.abort(), 15_000);
@@ -140,15 +140,15 @@ export async function discoverModels(baseUrl: string, apiKey?: string): Promise<
 		});
 		if (res.status >= 300 && res.status < 400) {
 			await res.body?.cancel();
-			return { ok: false, error: "Discovery redirects are not allowed", fatal: true };
+			return { ok: false, error: "不允许发现请求发生重定向", fatal: true };
 		}
-		if (!res.ok) { await res.body?.cancel(); return { ok: false, error: `Endpoint returned HTTP ${res.status}`, status: res.status }; }
+		if (!res.ok) { await res.body?.cancel(); return { ok: false, error: `端点返回 HTTP ${res.status}`, status: res.status }; }
 		const body = await readBoundedJson(res, 8 * 1024 * 1024);
 		const list = extractModels(body);
-		if (list === null) return { ok: false, error: "Endpoint response was not a model list" };
+		if (list === null) return { ok: false, error: "端点返回的不是模型列表" };
 		return { ok: true, models: list };
 	} catch (err) {
-		return { ok: false, error: err instanceof CustomBodyLimitError ? err.message : controller.signal.aborted ? "Endpoint timed out" : "Discovery request failed", fatal: err instanceof CustomBodyLimitError };
+		return { ok: false, error: err instanceof CustomBodyLimitError ? err.message : controller.signal.aborted ? "端点请求超时" : "发现请求失败", fatal: err instanceof CustomBodyLimitError };
 	} finally {
 		clearTimeout(timer);
 	}
@@ -233,7 +233,7 @@ const META_CONTEXT_KEYS = ["n_ctx"] as const;
 function extractModels(body: unknown): CustomModel[] | null {
 	const rows = modelRows(body);
 	if (rows === null) return null;
-	if (rows.length > 10_000) throw new CustomBodyLimitError("Model list exceeds 10000 entries");
+	if (rows.length > 10_000) throw new CustomBodyLimitError("模型列表超过 10000 条");
 	const byId = new Map<string, CustomModel>();
 	for (const row of rows) {
 		if (typeof row === "string") {

@@ -14,7 +14,7 @@ export function findLanguage(name: string): LanguageDescription | null {
 
 function codeFromAnswer(answer: PluginQuestionAnswerState): string {
   if (answer.status === "empty") return "";
-  if (typeof answer.value !== "string") throw new Error("Coding answers must be strings.");
+  if (typeof answer.value !== "string") throw new Error("编程题答案必须是字符串。");
   return normalizeLineEndings(answer.value);
 }
 
@@ -50,7 +50,7 @@ function createCodeView(container: HTMLElement, language: string, code: string, 
         EditorState.tabSize.of(4),
         indentUnit.of("    "),
         syntaxHighlighting(oneDarkHighlightStyle),
-        EditorView.contentAttributes.of({ "aria-label": onChange ? "Code answer" : "Submitted code" }),
+        EditorView.contentAttributes.of({ "aria-label": onChange ? "代码答案" : "已提交的代码" }),
         editable.of([EditorState.readOnly.of(!active), EditorView.editable.of(active)]),
         languageSupport.of([]),
         keymap.of([...standardKeymap, ...historyKeymap].filter(binding => ![binding.key, binding.mac, binding.win, binding.linux].some(key => key !== undefined && reservedKeys.has(key)))),
@@ -62,9 +62,9 @@ function createCodeView(container: HTMLElement, language: string, code: string, 
   });
 
   const languageDescription = findLanguage(language);
-  if (!languageDescription) status.textContent = "Plain text";
+  if (!languageDescription) status.textContent = "纯文本";
   else {
-    status.textContent = "Loading highlighting…";
+    status.textContent = "正在加载语法高亮…";
     void languageDescription.load().then(support => {
       if (disposed) return;
       // Catalog support may include tag insertion, completion keymaps or other
@@ -75,7 +75,7 @@ function createCodeView(container: HTMLElement, language: string, code: string, 
       ]) });
       status.textContent = "";
     }).catch(() => {
-      if (!disposed) status.textContent = "Plain text";
+      if (!disposed) status.textContent = "纯文本";
     });
   }
 

@@ -148,7 +148,7 @@ test("practice dock orders statement/editor/thinking, submits separately and ret
   const field = document.querySelector('[data-testid="practice-thinking-field"]')!;
   const elements = Array.from(document.querySelectorAll("*"));
   assert.ok(elements.indexOf(document.querySelector("#code-editor")!) < elements.indexOf(field));
-  assert.equal(document.querySelector('[data-testid="practice-send"]')?.textContent?.trim(), "Submit");
+  assert.equal(document.querySelector('[data-testid="practice-send"]')?.textContent?.trim(), "提交");
   await f.submit();
   assert.deepEqual(f.state.inputs, [{ type: "plugin-problem-submission", problemId: "problem-one", occurrence, submission: "initial code", thinking: "original thinking" }]);
   assert.deepEqual(f.draft.submission, { status: "ready", value: "initial code" }); assert.equal(f.draft.thinking, "");
@@ -165,7 +165,7 @@ test("collapse and busy reconciliation preserve the current editor generation an
 
 test("missing/disabled renderer leaves the plugin problem unavailable with no native editor fallback", async () => {
   const f = await fixture({ missing: true });
-  assert.match(document.body.textContent ?? "", /Problem unavailable/); assert.doesNotMatch(document.body.textContent ?? "", /PRIVATE_SOLUTION/);
+  assert.match(document.body.textContent ?? "", /题目不可用/); assert.doesNotMatch(document.body.textContent ?? "", /PRIVATE_SOLUTION/);
   assert.equal(document.querySelector("#code-editor"), null); assert.ok(document.querySelector('[data-testid="practice-send"]')?.hasAttribute("disabled"));
   await f.submit(); assert.equal(f.state.inputs.length, 0); assert.equal(f.draft.thinking, "original thinking");
 });
@@ -198,14 +198,14 @@ test("submitted rendering owns generation-scoped header/body/footer slots and sa
   let cleaned = 0;
   const registration: ProblemRendererRegistration = { pluginId: "fixture", renderer: { id: "code", supportedContractVersions: [1], mountSubmissionEditor() { throw Error("unused"); }, mountSubmitted(container, context) {
     contexts.push(context); container.textContent = "rendered code";
-    const badge = container.ownerDocument.createElement("b"); badge.textContent = "Tests passed"; context.headerContainer?.append(badge);
-    context.footerContainer!.textContent = "Test output";
+    const badge = container.ownerDocument.createElement("b"); badge.textContent = "测试通过"; context.headerContainer?.append(badge);
+    context.footerContainer!.textContent = "测试输出";
     return () => { cleaned++; };
   } } };
   const data: PluginProblemSubmission = { kind: "plugin-problem-submission", problemId: snapshot.problemId, pluginId: snapshot.pluginId, typeId: snapshot.typeId,
     contractVersion: 1, submission: "saved code", thinking: "saved thinking", processing: { result: true }, submittedAt: "now" };
   await render(<PluginProblemSubmittedContent data={data} snapshot={snapshot} chatId="chat" registration={registration} />);
-  assert.match(document.body.textContent ?? "", /Coding problemTests passed/); assert.match(document.body.textContent ?? "", /rendered code/);
+  assert.match(document.body.textContent ?? "", /Coding problem测试通过/); assert.match(document.body.textContent ?? "", /rendered code/);
   assert.deepEqual(contexts[0]?.processing, { result: true });
   const footer = contexts[0]!.footerContainer!;
   assert.equal(Object.isFrozen(footer), false);

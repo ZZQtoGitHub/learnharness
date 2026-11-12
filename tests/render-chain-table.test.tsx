@@ -180,7 +180,7 @@ describe("shared tree presentation", () => {
 	});
 
 	it("keeps native disclosure styles distinct and makes sticky headers explicit", () => {
-		const plain = renderToStaticMarkup(<TreeDisclosure plain open aria-label="Folder" />);
+		const plain = renderToStaticMarkup(<TreeDisclosure plain open aria-label="文件夹" />);
 		const animated = renderToStaticMarkup(<TreeDisclosure open aria-label="Chain" />);
 		assert.doesNotMatch(plain, /rounded|transition-|hover:/);
 		assert.match(plain, /rotate-90/);
@@ -222,7 +222,7 @@ describe("ChainTableBody — clusters (the outermost layer)", () => {
 
 	it("an unnameable CONCLUSION birth forms one honest muted unlabeled group", () => {
 		const html = render();
-		assert.ok(html.includes("unlabeled"), "the muted label");
+		assert.ok(html.includes("未标注"), "the muted label");
 		// orphan (birth null) concludes its own singleton chain → the group exists;
 		// d (also birth null) is a premise of e and never forms one
 		assert.ok(html.includes('data-testid="chain-row-orphan"') === false, "collapsed, like every group");
@@ -234,7 +234,7 @@ describe("ChainTableBody — clusters (the outermost layer)", () => {
 		// chat1: chains c1 (a, b, c1) + solo (solo) → 4 member ids
 		assert.ok(html.includes(">4</span>"), "chat1's proposition count");
 		assert.ok(html.includes("2026-09-20"), "the newest-member date");
-		assert.ok(html.includes(">notes</span>"), "the notes kind tag");
+		assert.ok(html.includes(">笔记</span>"), "the notes kind tag");
 	});
 });
 
@@ -416,7 +416,7 @@ describe("ChainTableBody — the floating selection bar (never shifts layout)", 
 		const html = render({ selectedSources: new Set(["chat1", "notes1"]) });
 		assert.ok(html.includes('data-testid="chain-selection-bar"'));
 		assert.ok(html.includes('data-testid="chain-selected-summary"'));
-		assert.ok(html.includes("2 sources"));
+		assert.ok(html.includes("2 份资料"));
 		assert.ok(html.includes('data-testid="chain-clear"'));
 		// The danger fence (owner, 2026-09-29 night): a divider quarantines
 		// the destructive action at the bar's right end, red + trash icon,
@@ -424,7 +424,7 @@ describe("ChainTableBody — the floating selection bar (never shifts layout)", 
 		assert.ok(html.includes('data-testid="chain-danger-divider"'));
 		const del = html.match(/<button[^>]*data-testid="chain-delete"[^>]*>/)?.[0] ?? "";
 		assert.match(del, /border-destructive\/50/); // the destructive pair
-		assert.match(del, /aria-label="Delete selected sources and folders"/);
+		assert.match(del, /aria-label="删除所选资料与文件夹"/);
 		assert.ok(html.includes("lucide-trash-2"), "the trash icon");
 		// the fence is before Delete in the DOM (right end of the bar)
 		assert.ok(html.indexOf('chain-danger-divider"') < html.indexOf('chain-delete"'));
@@ -449,7 +449,7 @@ describe("ChainTableBody — the floating selection bar (never shifts layout)", 
 
 	it("a premise WITHOUT its conclusion derives as the singleton it becomes", () => {
 		const html = render({ selectMode: true, selection: new Set(["a", "d"]) });
-		assert.ok(html.includes("2 nodes → 2 chains"), "no follows-edge survives inside the selection");
+		assert.ok(html.includes("2 个节点 → 2 条推理链"), "no follows-edge survives inside the selection");
 	});
 });
 
@@ -469,13 +469,13 @@ describe("ChainTableBody — the fuzzy search (grouped + auto-expand)", () => {
 		assert.ok(!html.includes("cluster-group-notes1") === false, "notes1 still renders (it has a match)");
 		assert.ok(!html.includes("Ethics lesson") === false, "chat1 still renders (it has a match)");
 		// the floating bar is never search-filtered
-		assert.ok(html.includes("3 nodes → 1 chain"));
+		assert.ok(html.includes("3 个节点 → 1 条推理链"));
 	});
 
 	it("no matches: the honest empty line", () => {
 		const html = render({ query: "qqqq" });
 		assert.ok(html.includes('data-testid="chain-table-nomatch"'));
-		assert.ok(html.includes("No matching chains."));
+		assert.ok(html.includes("没有匹配的推理链。"));
 	});
 });
 
@@ -496,7 +496,7 @@ describe("ChainTableOverlay — the lifted practice pick (owner vision, 2026-10-
 
 	it("CONTROLLED selection renders the caller's set — the bar counts it live", () => {
 		const html = overlay({ selectMode: true, controlledSelection: new Set(["a", "b", "c1"]) });
-		assert.ok(html.includes("3 nodes → 1 chain"), "the bar reflects the lifted set, not internal state");
+		assert.ok(html.includes("3 个节点 → 1 条推理链"), "the bar reflects the lifted set, not internal state");
 	});
 
 	it("select mode: Done replaces the delete fence — no way to delete while picking", () => {
@@ -505,7 +505,7 @@ describe("ChainTableOverlay — the lifted practice pick (owner vision, 2026-10-
 			controlledSelection: new Set(["a", "b"]),
 		});
 		assert.ok(html.includes('data-testid="chain-practice-done"'));
-		assert.ok(html.includes("Done"));
+		assert.ok(html.includes("完成"));
 		assert.ok(!html.includes('data-testid="chain-delete"'), "no delete while picking");
 		assert.ok(!html.includes('data-testid="chain-danger-divider"'));
 	});

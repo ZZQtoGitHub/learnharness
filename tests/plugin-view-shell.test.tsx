@@ -13,7 +13,7 @@ describe("plugin view host shell", () => {
 		const html = renderToStaticMarkup(<PluginViewScreen pluginId="fixture" viewId="overview" />);
 		assert.ok(html.includes("lh-wco-gutter"));
 		assert.ok(html.includes("lh-drag"));
-		assert.ok(html.includes('aria-label="Open sidebar"'));
+		assert.ok(html.includes('aria-label="打开侧边栏"'));
 		assert.ok(html.includes("font-title text-3xl tracking-tight"));
 		assert.ok(html.includes('aria-label="Plugin settings"'));
 		assert.ok(html.includes("Loading plugin…"));

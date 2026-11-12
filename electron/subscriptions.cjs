@@ -9,14 +9,14 @@ const LABELS = { "github-copilot": "GitHub Copilot", xai: "Grok" };
 const APIS = new Set(["openai-responses", "openai-completions", "anthropic-messages"]);
 const clone = (value) => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 const MESSAGES = {
-	storage: "The saved connection could not be read or written safely. Reopen the app or reconnect after resolving the credential-file problem.",
-	login: "Sign-in did not complete. Try connecting again.",
-	refresh: "The connection could not be refreshed. Retry or reconnect in Providers.",
-	cancel: "Sign-in cancelled.",
-	unavailable: "This subscription connection is unavailable. Reconnect or explicitly choose another connection.",
-	background: "Background use is off for this connection. Automatic follow-up remains deferred in its queue.",
-	stale: "The connection or model catalog changed. Select an available model and retry.",
-	interaction: "This sign-in action is no longer available.",
+	storage: "无法安全读取或写入已保存的连接。请重新打开应用，或在解决凭据文件问题后重新连接。",
+	login: "登录未完成，请重新连接。",
+	refresh: "连接无法刷新。请在“服务商”中重试或重新连接。",
+	cancel: "已取消登录。",
+	unavailable: "此订阅连接当前不可用。请重新连接，或显式选择其他连接。",
+	background: "此连接已关闭后台使用。自动的后续请求仍会延后留在队列中。",
+	stale: "连接或模型目录已变化。请选择一个可用模型后重试。",
+	interaction: "此登录操作已失效。",
 };
 function publicError(error) { return MESSAGES[error?.code] ?? MESSAGES.unavailable; }
 /** Resolve the SAME SDK installation as the standalone server, through public exports. */
@@ -157,7 +157,7 @@ function createSubscriptions(options) {
 					if (event.type === "auth_url") addBrowser(event.url);
 					if (event.type === "device_code") { addBrowser(event.verificationUri); attempt.public.userCode = event.userCode; }
 					// Native provider diagnostics are never forwarded. Public prompt wording comes from SDK-owned prompts.
-					attempt.public.progress = event.type === "device_code" || event.type === "auth_url" ? "Complete sign-in in your browser." : "Waiting for the provider…";
+					attempt.public.progress = event.type === "device_code" || event.type === "auth_url" ? "请在浏览器中完成登录。" : "正在等待服务商…";
 					changed(entry);
 				},
 				prompt: (prompt) => new Promise((resolve, reject) => {

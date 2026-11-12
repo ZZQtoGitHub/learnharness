@@ -136,7 +136,7 @@ it("pending drafts remain visible while unfocused and enabled, then show acknowl
 	const save = deferred<void>();
 	function Field() {
 		const [value, setValue] = React.useState("old");
-		return <CommitInput value={value} ariaLabel="Text" onCommit={async () => { await save.promise; setValue("canonical"); return true; }} />;
+		return <CommitInput value={value} ariaLabel="正文" onCommit={async () => { await save.promise; setValue("canonical"); return true; }} />;
 	}
 	await f.render(<Field />); const input = f.input();
 	await f.type(input, " candidate "); await f.blur(input);
@@ -154,10 +154,10 @@ for (const outcome of ["false", "throw", "reject"] as const) {
 			if (outcome === "reject") return Promise.reject(new Error("save failed"));
 			return false;
 		};
-		await f.render(<CommitInput value="stored" ariaLabel="Text" onCommit={onCommit} />);
+		await f.render(<CommitInput value="stored" ariaLabel="正文" onCommit={onCommit} />);
 		const input = f.input(); await f.type(input, "unsaved"); await f.key(input, "Escape");
 		assert.equal(input.value, "unsaved");
-		await f.render(<CommitInput value="external" ariaLabel="Text" onCommit={onCommit} />);
+		await f.render(<CommitInput value="external" ariaLabel="正文" onCommit={onCommit} />);
 		assert.equal(input.value, "unsaved");
 		accepted = true; input.focus(); await f.blur(input);
 		assert.equal(input.value, "external", "retry reconciles to the controlled source, never optimistic text");
@@ -168,10 +168,10 @@ it("old completions cannot erase newer typing or a newer acknowledged draft", as
 	const first = deferred<boolean>(), second = deferred<boolean>();
 	const commits: string[] = [];
 	const callback = (next: string) => { commits.push(next); return commits.length === 1 ? first.promise : second.promise; };
-	await f.render(<CommitInput value="stored" ariaLabel="Text" onCommit={callback} />);
+	await f.render(<CommitInput value="stored" ariaLabel="正文" onCommit={callback} />);
 	const input = f.input(); await f.type(input, "first"); await f.blur(input);
 	await f.type(input, "second");
-	await f.render(<CommitInput value="older-server-value" ariaLabel="Text" onCommit={callback} />);
+	await f.render(<CommitInput value="older-server-value" ariaLabel="正文" onCommit={callback} />);
 	assert.equal(input.value, "second"); await f.blur(input);
 	await act(async () => { second.resolve(true); });
 	assert.equal(input.value, "older-server-value");
@@ -181,7 +181,7 @@ it("old completions cannot erase newer typing or a newer acknowledged draft", as
 
 it("blur does not duplicate a pending revision and an unmounted field ignores its acknowledgement", async () => fixture(async f => {
 	const save = deferred<boolean>(); let writes = 0;
-	await f.render(<CommitInput value="stored" ariaLabel="Text" onCommit={() => { writes++; return save.promise; }} />);
+	await f.render(<CommitInput value="stored" ariaLabel="正文" onCommit={() => { writes++; return save.promise; }} />);
 	const input = f.input(); await f.type(input, "draft"); await f.blur(input); await f.blur(input);
 	assert.equal(writes, 1); await f.render(<p>closed</p>);
 	await act(async () => { save.resolve(true); }); assert.equal(input.value, "draft");
@@ -190,8 +190,8 @@ it("blur does not duplicate a pending revision and an unmounted field ignores it
 it("clean fields follow external values and unchanged trimmed drafts do not write", async () => fixture(async f => {
 	let writes = 0;
 	const callback = () => { writes++; return true; };
-	await f.render(<CommitInput value="old" ariaLabel="Text" onCommit={callback} />);
-	await f.render(<CommitInput value="new" ariaLabel="Text" onCommit={callback} />);
+	await f.render(<CommitInput value="old" ariaLabel="正文" onCommit={callback} />);
+	await f.render(<CommitInput value="new" ariaLabel="正文" onCommit={callback} />);
 	const input = f.input(); assert.equal(input.value, "new");
 	await f.type(input, " new "); await f.key(input, "Enter");
 	assert.equal(writes, 0); assert.equal(input.value, "new");
@@ -258,7 +258,7 @@ it("worker/compaction adapters acknowledge invalid, accepted and unset outcomes"
 	Object.defineProperty(input, "validity", { value: { badInput: false } });
 	await f.type(input, "1.5"); await f.key(input, "Escape");
 	assert.equal(agent.length, 0); assert.equal(input.value, "1.5");
-	assert.ok(document.querySelector('[role="alert"]')?.textContent?.includes("positive, safely representable whole number"));
+	assert.ok(document.querySelector('[role="alert"]')?.textContent?.includes("请输入一个可安全表示的正整数。"));
 	await f.type(input, "9"); await f.blur(input); assert.equal(agent.at(-1)?.workerRequestConcurrency, 9);
 	await f.type(input, ""); await f.blur(input); assert.equal(agent.at(-1)?.workerRequestConcurrency, undefined);
 	input = f.input('[data-testid="input-compaction-threshold"]');
@@ -285,7 +285,7 @@ for (const failure of ["http", "network", "missing", "malformed"] as const) {
 		await f.type(input, "#ABCDEF"); await f.key(input, "Escape");
 		assert.equal(closed, 0); assert.equal(input.value, "#ABCDEF"); assert.equal(writes, 1);
 		const text = document.querySelector('[data-testid="settings-dialog"]')?.textContent;
-		assert.ok(text?.includes(failure === "http" ? "appearance: Invalid color" : failure === "network" ? "appearance: Network unavailable" : "appearance: Could not confirm saved settings. Your input has been kept."));
+		assert.ok(text?.includes(failure === "http" ? "appearance: Invalid color" : failure === "network" ? "appearance: Network unavailable" : "appearance: 无法确认设置已保存，你的输入已保留。"));
 		accept = true; input.focus(); await f.blur(input);
 		assert.equal(writes, 2); assert.equal(input.value, "#abcdef");
 		await f.key(document.body, "Escape"); assert.equal(closed, 1);
@@ -307,7 +307,7 @@ it("plugin validation and callback failures retain drafts; successful callbacks 
 	const errors: unknown[] = []; const changes: unknown[] = [];
 	let reject = true;
 	const schema: PluginSettingsSchema = { rows: [
-		{ key: "text", type: "text", label: "Text", value: "stored", validate: value => value === "invalid" ? "Invalid preference" : undefined,
+		{ key: "text", type: "text", label: "正文", value: "stored", validate: value => value === "invalid" ? "Invalid preference" : undefined,
 			async onChange(value) { changes.push(value); if (reject) throw new Error("Plugin save failed"); } },
 		{ key: "number", type: "number", label: "Number", value: 3, min: 1, max: 5, onChange(value) { changes.push(value); } },
 	] };
@@ -323,7 +323,7 @@ it("plugin validation and callback failures retain drafts; successful callbacks 
 	assert.equal(input.value, "stored", "void callback completion does not assign optimistic plugin state");
 	const number = f.input('[data-plugin-setting="number"] input');
 	await f.type(number, "6"); await f.blur(number);
-	assert.equal(number.value, "6"); assert.ok(document.body.textContent?.includes("Value is outside the allowed range."));
+	assert.equal(number.value, "6"); assert.ok(document.body.textContent?.includes("取值超出允许范围。"));
 	await f.type(number, ""); await f.blur(number); assert.equal(number.value, "");
 	await f.type(number, "4"); await f.blur(number); assert.equal(number.value, "3");
 	assert.deepEqual(changes, ["candidate", "candidate", 4]);
@@ -331,11 +331,11 @@ it("plugin validation and callback failures retain drafts; successful callbacks 
 
 it("plugin asynchronous callbacks retain pending text and reconcile the latest supplied schema", async () => fixture(async f => {
 	const save = deferred<void>();
-	let schema: PluginSettingsSchema = { rows: [{ key: "text", type: "text", label: "Text", value: "old", onChange: () => save.promise }] };
+	let schema: PluginSettingsSchema = { rows: [{ key: "text", type: "text", label: "正文", value: "old", onChange: () => save.promise }] };
 	const render = () => f.render(<PluginSettingsRows schema={schema} />);
 	await render(); const input = f.input(); await f.type(input, "candidate"); await f.blur(input);
 	assert.equal(input.value, "candidate"); assert.equal(input.disabled, true, "existing plugin pending disabling is preserved");
-	schema = { rows: [{ key: "text", type: "text", label: "Text", value: "normalized", onChange: () => save.promise }] };
+	schema = { rows: [{ key: "text", type: "text", label: "正文", value: "normalized", onChange: () => save.promise }] };
 	await render(); assert.equal(input.value, "candidate");
 	await act(async () => { save.resolve(); });
 	assert.equal(input.value, "normalized"); assert.equal(input.disabled, false);

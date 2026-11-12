@@ -114,7 +114,7 @@ async function turnInFlight(model: SessionModel): Promise<boolean | null> {
 	}
 }
 
-const STREAM_DROPPED = "The connection dropped before the turn completed.";
+const STREAM_DROPPED = "连接在本轮完成前中断。";
 
 /** Mark transport failures without confusing JSON/application bugs with drops. */
 class StreamReadError extends Error {
@@ -376,7 +376,7 @@ export class SessionModel {
 		const providerError =
 			latest !== undefined &&
 			!this.incompleteUsageIds.has(latest.id) && (!live || latest.id === this.liveFailureId)
-				? { message: latest.errorMessage ?? "An error occurred." }
+				? { message: latest.errorMessage ?? "发生错误。" }
 				: null;
 		return {
 			messages: projectView(messages, live),
@@ -455,13 +455,13 @@ export class SessionModel {
 		if (!response.ok) {
 			const detail = await response.text();
 			if (options.tolerateHttpFailure) return undefined;
-			throw new Error(detail || "Could not sync the saved session.");
+			throw new Error(detail || "无法同步已保存的会话。");
 		}
 		let text: string;
 		try { text = await response.text(); }
 		catch (error) { if (options.recoveringDrop && !options.signal?.aborted) throw new StreamReadError(error); throw error; }
 		const record = JSON.parse(text) as SessionRecordSnapshot;
-		if (!Array.isArray(record.messages)) throw new Error("Could not sync the saved session.");
+		if (!Array.isArray(record.messages)) throw new Error("无法同步已保存的会话。");
 		if (epoch !== this.canonicalEpoch || ticket < this.canonicalAcknowledged || options.signal?.aborted || options.isCurrent?.() === false) return undefined;
 		const mode = options.adoption ?? "replace";
 		// Returning undefined also prevents callers from certifying a deferred
@@ -496,7 +496,7 @@ export class SessionModel {
 			try {
 				const record = await this.readRecord({ allowInFlight: true, isCurrent });
 				if (!isCurrent()) return false;
-				if (this.canonicalEpoch !== epoch) throw new Error("Canonical read was invalidated.");
+				if (this.canonicalEpoch !== epoch) throw new Error("规范读取已失效。");
 				// A newer successfully adopted GET is authority too; a merely
 				// issued/pending read cannot suppress this terminal response.
 				if (!record && this.canonicalAcknowledged < requiredTicket) return false;
@@ -542,7 +542,7 @@ export class SessionModel {
 		this.setStatus("submitted");
 		try {
 			const response = await this.fetch(`/api/chats/${encodeURIComponent(this.chatId)}/dismiss`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ input: { type: "dismiss-plugin-question", occurrence, ...(questionId ? { questionId } : {}) } }) });
-			if (!response.ok) throw new Error("The dismissal failed.");
+			if (!response.ok) throw new Error("关闭失败。");
 			await response.text();
 			this.invalidateCanonicalReads();
 			await this.reconcile();
@@ -596,7 +596,7 @@ export class SessionModel {
 		if (event.type === "error") {
 			// Loop-level failure (agent.continue threw outside the stream) —
 			// raw text (owner ruling, Wave D): the banner shows exactly this.
-			this.setError(String(event.errorText ?? "An error occurred."));
+			this.setError(String(event.errorText ?? "发生错误。"));
 			return false;
 		}
 		const agent = event as unknown as AgentEvent;
@@ -680,7 +680,7 @@ export class SessionModel {
 				const result = agent.result as
 					| Pick<ToolResultMessage, "content" | "details">
 					| null;
-				const text = result?.content?.find((c) => c.type === "text")?.text ?? "The tool call failed.";
+				const text = result?.content?.find((c) => c.type === "text")?.text ?? "工具调用失败。";
 				this.mutate(() => {
 					this.executions = new Map(this.executions).set(agent.toolCallId, {
 						isError: agent.isError,
@@ -712,7 +712,7 @@ export class SessionModel {
 	/** Consume one SSE body to its [DONE] terminal. The turn-settled
 	 *  terminal (stream-route only) fires the settle hook and ends. */
 	async consumeStream(res: Response, controller = this.consumeAbort, allowRecovery = true): Promise<void> {
-		if (!res.body) throw new Error("The turn stream body is empty.");
+		if (!res.body) throw new Error("本轮响应体为空。");
 		const reader = res.body.getReader();
 		let sawEvent = false;
 		let sawDone = false;
@@ -836,7 +836,7 @@ export class SessionModel {
 			}
 			const res = await this.fetchView(`/api/chats/${encodeURIComponent(this.chatId)}/stream`, controller.signal, !allowRecovery);
 			if (this.consumeAbort !== controller) return;
-			if (!res.ok) throw new Error((await res.text()) || "Failed to attach to the running turn.");
+			if (!res.ok) throw new Error((await res.text()) || "无法接入正在运行的轮次。");
 			await this.consumeStream(res, controller, allowRecovery);
 		} catch (err) {
 			if (this.consumeAbort !== controller || controller.signal.aborted) return; // intentionally cancelled
@@ -901,7 +901,7 @@ export class SessionModel {
 				if (this.consumeAbort !== controller || !record) return refused();
 				// No verified record/liveness: retain the draft and never guess
 				// whether a lost acknowledgement meant the input was accepted.
-				if (!Array.isArray(record.messages) || typeof record.turnInFlight !== "boolean") throw new Error("An error occurred.");
+				if (!Array.isArray(record.messages) || typeof record.turnInFlight !== "boolean") throw new Error("发生错误。");
 				if (record.turnInFlight) {
 					settleDelivery();
 					await this.resumeStream(false);
@@ -971,14 +971,14 @@ export class SessionModel {
 			}
 			if (res.status === 409) {
 				settleDelivery();
-				throw new Error("A turn is already running — try again in a moment.");
+				throw new Error("已有轮次正在运行——请稍后再试。");
 			}
 			if (!res.ok) {
 				settleDelivery();
 				// Keep model/key refusal envelopes verbatim: the page's refusal
 				// flow parses them. Retry's 400s are ordinary user-facing
 				// guidance, so show their error text without JSON syntax.
-				let message = (await res.text()) || `The send failed (${res.status}).`;
+				let message = (await res.text()) || `发送失败（${res.status}）。`;
 				if ((input.type === "retry" || input.type === "retry-question") && res.status === 400) {
 					try {
 						const refusal = JSON.parse(message) as { error?: unknown } | null;
@@ -1084,7 +1084,7 @@ export class SessionModel {
 			}
 			dropSteer();
 			settleDelivery();
-			this.setError((await res.text()) || `The steer failed (${res.status}).`);
+			this.setError((await res.text()) || `插话引导失败（${res.status}）。`);
 		} catch (err) {
 			dropSteer(); settleDelivery();
 			this.setError((err as Error).message);
@@ -1120,7 +1120,7 @@ export class SessionModel {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ input: { type: "dismiss", toolCallId, answer } }),
 			});
-			if (!res.ok) throw new Error(`The dismissal failed (${res.status}).`);
+			if (!res.ok) throw new Error(`关闭失败（${res.status}）。`);
 			this.invalidateCanonicalReads();
 		} catch (err) {
 			this.setError((err as Error).message);
@@ -1143,7 +1143,7 @@ export class SessionModel {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ input: { type: "dismiss-problem", problemCallId } }),
 			});
-			if (!res.ok) throw new Error(`The dismissal failed (${res.status}).`);
+			if (!res.ok) throw new Error(`关闭失败（${res.status}）。`);
 			this.invalidateCanonicalReads();
 		} catch (err) {
 			this.setError((err as Error).message);

@@ -62,18 +62,18 @@ async function readNotesFile(file: File): Promise<NotesFile> {
 	if (!IMPORT_EXTENSIONS.test(file.name)) return { kind: "refused", error: UNSUPPORTED_TYPE_MESSAGE };
 	const bytes = new Uint8Array(await file.arrayBuffer());
 	if (!PDF_MAGIC.every((byte, i) => bytes[i] === byte)) {
-		if (bytes.subarray(0, 8192).includes(0)) return { kind: "refused", error: "This file isn't plain text." };
+		if (bytes.subarray(0, 8192).includes(0)) return { kind: "refused", error: "这个文件不是纯文本。" };
 		return { kind: "notes", text: new TextDecoder().decode(bytes) };
 	}
 	const pdf = await convertPdf(bytes, MAX_PDF_PAGES);
 	switch (pdf.kind) {
 		case "unreadable":
-			return { kind: "refused", error: "Could not open this PDF." };
+			return { kind: "refused", error: "无法打开这个 PDF。" };
 		case "too-long":
-			return { kind: "refused", error: "Too long. Max 1,000 pages." };
+			return { kind: "refused", error: "页数过多，上限 1,000 页。" };
 		case "converted": {
 			const text = joinPages(pdf.pages);
-			if (!text) return { kind: "refused", error: "OCR not supported yet." };
+			if (!text) return { kind: "refused", error: "暂不支持 OCR。" };
 			const skipped = pdf.pages.filter((page) => page.kind === "image-only").length;
 			const omission = skipped > 0 ? ` Skipped ${skipped} image-only ${skipped === 1 ? "page" : "pages"}; OCR is not supported.` : "";
 			return { kind: "notes", text, notice: `Scanned pages may have errors.${omission}` };
@@ -93,21 +93,21 @@ export async function POST(request: Request) {
 	}
 	const files = form.getAll("files").filter((f): f is File => f instanceof File);
 	if (files.reduce((total, file) => total + file.size, 0) > MAX_IMPORT_BYTES) {
-		return Response.json({ results: [] as ImportResult[], error: "Too big. Max 25 MB." }, { status: 413 });
+		return Response.json({ results: [] as ImportResult[], error: "文件过大，上限 25 MB。" }, { status: 413 });
 	}
 	if (files.length === 0) {
-		return Response.json({ results: [] as ImportResult[], error: "no files" }, { status: 400 });
+		return Response.json({ results: [] as ImportResult[], error: "没有文件" }, { status: 400 });
 	}
 
 	// PR198: folder-relative identity, matched to either browser filename form.
 	// Validate every path before conversions, metadata writes, or model calls.
 	const suppliedPaths = form.getAll("paths");
 	if (suppliedPaths.length > 0 && (suppliedPaths.length !== files.length || suppliedPaths.some((p) => typeof p !== "string"))) {
-		return Response.json({ results: [], error: "Invalid import paths" }, { status: 400 });
+		return Response.json({ results: [], error: "导入路径无效" }, { status: 400 });
 	}
 	const paths = suppliedPaths.length > 0 ? suppliedPaths as string[] : files.map((f) => f.name);
 	if (files.some((file, i) => !validNotesPath(paths[i]!, file.name))) {
-		return Response.json({ results: [], error: "Import contains an unsafe or mismatched relative path" }, { status: 400 });
+		return Response.json({ results: [], error: "导入内容包含不安全或无法匹配的相对路径" }, { status: 400 });
 	}
 	const results: ImportResult[] = [];
 	const queue = files.map((file, requestIndex) => ({ file, requestIndex, filePath: paths[requestIndex]! }));

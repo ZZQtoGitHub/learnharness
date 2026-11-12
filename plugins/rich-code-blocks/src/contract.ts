@@ -15,7 +15,7 @@ export const LANGUAGES: Record<Family, Language> = {
   chemicalStructures: "smiles", musicalNotation: "abc", technicalDiagrams: "tikz",
 };
 export const LABELS: Record<Family, string> = {
-  chemicalStructures: "Chemical structures", musicalNotation: "Musical notation", technicalDiagrams: "Technical diagrams",
+  chemicalStructures: "化学结构", musicalNotation: "乐谱", technicalDiagrams: "技术图解",
 };
 export const INSTRUCTIONS: Record<Family, string> = {
   chemicalStructures: "For chemical structures, use a smiles fenced code block containing one SMILES molecule. Write explanations outside the block; do not author raw SVG.",
@@ -37,12 +37,12 @@ export const CACHE_ENTRIES = 32;
 export const CACHE_BYTES = 8 * 1024 * 1024;
 
 export function parseSettings(value: unknown): Settings {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid Rich code blocks settings.");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Rich code blocks 设置无效。");
   const record = value as Record<string, unknown>;
-  if (record.version !== 1) throw new Error("Unsupported Rich code blocks settings version; the saved file has not been changed.");
-  if (Object.keys(record).some(key => !["version", "revision", "inkColor", ...FAMILIES].includes(key))) throw new Error("Unknown Rich code blocks settings fields.");
+  if (record.version !== 1) throw new Error("不支持该 Rich code blocks 设置版本；已保存的文件未被改动。");
+  if (Object.keys(record).some(key => !["version", "revision", "inkColor", ...FAMILIES].includes(key))) throw new Error("存在未知的 Rich code blocks 设置字段。");
   if (!Number.isSafeInteger(record.revision) || (record.revision as number) < 0 || FAMILIES.some(key => typeof record[key] !== "boolean")) {
-    throw new Error("Invalid Rich code blocks settings.");
+    throw new Error("Rich code blocks 设置无效。");
   }
   // Legacy v1 inkColor is accepted above but deliberately omitted: theme Text
   // now owns neutral ink. Reads never rewrite disk; normal saves drop the key.
@@ -51,19 +51,19 @@ export function parseSettings(value: unknown): Settings {
 }
 
 export function parseChange(value: unknown): { family: Family; enabled: boolean } {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("A family and boolean enabled value are required.");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("需要一个类别名与布尔启用值。");
   const record = value as Record<string, unknown>;
   if (Object.keys(record).length !== 2 || !FAMILIES.includes(record.family as Family) || typeof record.enabled !== "boolean") {
-    throw new Error("A known family and boolean enabled value are required.");
+    throw new Error("需要一个已知类别名与布尔启用值。");
   }
   return { family: record.family as Family, enabled: record.enabled };
 }
 
 export function checkSource(language: Language, source: string): void {
-  if (new TextEncoder().encode(source).byteLength > SOURCE_LIMITS[language]) throw new Error(`${language} source exceeds the ${SOURCE_LIMITS[language] / 1024} KiB limit.`);
-  if (!source.trim()) throw new Error(`Empty ${language} source.`);
+  if (new TextEncoder().encode(source).byteLength > SOURCE_LIMITS[language]) throw new Error(`${language} 源内容超出 ${SOURCE_LIMITS[language] / 1024} KiB 上限。`);
+  if (!source.trim()) throw new Error(`${language} 源内容为空。`);
 }
 
 export function checkSvgSize(svg: string): void {
-  if (new TextEncoder().encode(svg).byteLength > SVG_LIMIT) throw new Error("Rendered SVG exceeds the 2 MiB limit.");
+  if (new TextEncoder().encode(svg).byteLength > SVG_LIMIT) throw new Error("渲染出的 SVG 超出 2 MiB 上限。");
 }

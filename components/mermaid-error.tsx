@@ -25,7 +25,7 @@ export const MermaidError = ({
 		data-streamdown="mermaid-error"
 	>
 		<p className="text-sm font-medium text-destructive">
-			Diagram failed to render
+			图表渲染失败
 		</p>
 		<p className="mt-1 font-mono text-xs break-words text-muted-foreground">
 			{error}
@@ -36,14 +36,14 @@ export const MermaidError = ({
 			</pre>
 		) : <details className="mt-3">
 			<summary className="cursor-pointer text-xs text-muted-foreground">
-				Show diagram source
+				查看图表源码
 			</summary>
 			<pre className="mt-2 overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs text-foreground">
 				{chart}
 			</pre>
 		</details>}
 		{!displayOnly && <Button className="mt-3" onClick={retry} size="sm" variant="outline">
-			Retry
+			重试
 		</Button>}
 	</div>
 );

@@ -58,8 +58,8 @@ function readDataUrl(blob: Blob, signal: AbortSignal): Promise<string> {
     const reader = new FileReader();
     const cleanup = () => signal.removeEventListener("abort", abort);
     const abort = () => { reader.abort(); cleanup(); reject(signal.reason); };
-    reader.onload = () => { cleanup(); if (typeof reader.result === "string") resolve(reader.result); else reject(new Error("Could not encode a reference font.")); };
-    reader.onerror = () => { cleanup(); reject(reader.error ?? new Error("Could not read a reference font.")); };
+    reader.onload = () => { cleanup(); if (typeof reader.result === "string") resolve(reader.result); else reject(new Error("无法编码参考字体。")); };
+    reader.onerror = () => { cleanup(); reject(reader.error ?? new Error("无法读取参考字体。")); };
     signal.addEventListener("abort", abort, { once: true }); reader.readAsDataURL(blob);
   });
 }
@@ -99,7 +99,7 @@ export async function referenceFontCSS(root: HTMLElement, signal: AbortSignal): 
     seen.add(sheet);
     let rules: CSSRuleList;
     try { rules = sheet.cssRules; }
-    catch { throw new Error(`Could not inspect the font stylesheet ${sheet.href ?? "(inline)"}.`); }
+    catch { throw new Error(`无法检查字体样式表 ${sheet.href ?? "（内联）"}。`); }
     visitRules(rules, sheet.href ?? document.baseURI);
   };
   for (const sheet of [...document.styleSheets, ...document.adoptedStyleSheets]) visitSheet(sheet);
@@ -109,9 +109,9 @@ export async function referenceFontCSS(root: HTMLElement, signal: AbortSignal): 
     if (!pending) {
       pending = (async () => {
         const response = await fetch(url, { signal });
-        if (!response.ok || response.headers.get("content-type")?.toLowerCase().includes("text/html")) throw new Error(`Could not load a reference font (${response.status}).`);
+        if (!response.ok || response.headers.get("content-type")?.toLowerCase().includes("text/html")) throw new Error(`无法加载参考字体（${response.status}）。`);
         const blob = await response.blob();
-        if (!blob.size) throw new Error("A reference font was empty.");
+        if (!blob.size) throw new Error("某个参考字体内容为空。");
         return readDataUrl(blob, signal);
       })();
       resources.set(url, pending);

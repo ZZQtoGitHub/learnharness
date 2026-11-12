@@ -56,13 +56,13 @@ function validUnicode(text) {
   return true;
 }
 function validateFileInput(input) {
-  if (!input || typeof input !== 'object' || Array.isArray(input)) fail('File input must be an object.');
+  if (!input || typeof input !== 'object' || Array.isArray(input)) fail('文件输入必须是一个对象。');
   const { name, markdown } = input;
   nonblank(name, 'File name');
-  if (/\p{Cc}/u.test(name)) fail('File name must not contain control characters.');
-  if (typeof markdown !== 'string' || !markdown.trim()) fail('Source Markdown must not be empty.');
-  if (!validUnicode(markdown)) fail('Source Markdown must contain valid Unicode, without unpaired surrogates.');
-  if (Buffer.byteLength(markdown, 'utf8') > 2 * 1024 * 1024) fail('Source Markdown exceeds the 2 MiB UTF-8 limit.');
+  if (/\p{Cc}/u.test(name)) fail('文件名不能包含控制字符。');
+  if (typeof markdown !== 'string' || !markdown.trim()) fail('源 Markdown 不能为空。');
+  if (!validUnicode(markdown)) fail('源 Markdown 必须包含合法的 Unicode，不能有未配对的代理项。');
+  if (Buffer.byteLength(markdown, 'utf8') > 2 * 1024 * 1024) fail('源 Markdown 超出 2 MiB 的 UTF-8 上限。');
   const fingerprint = createHash('sha256').update(JSON.stringify([name, markdown]), 'utf8').digest('hex');
   return { name, markdown, fingerprint };
 }
@@ -70,18 +70,18 @@ const estimate = prompt => Math.ceil(Buffer.byteLength(instructions + JSON.strin
 function prepareFileChunks(options) {
   const { name, markdown } = validateFileInput(options);
   const { chunkBudget, entry, ranges } = options;
-  if (!Number.isSafeInteger(chunkBudget) || chunkBudget < 1) fail('Input budget must be a positive safe whole number.');
-  if (!entry || typeof entry !== 'object') fail('A model catalog entry is required.');
+  if (!Number.isSafeInteger(chunkBudget) || chunkBudget < 1) fail('输入预算必须是正的安全整数。');
+  if (!entry || typeof entry !== 'object') fail('需要一个模型目录条目。');
   const outputLimit = entry.maxTokens ?? 8192, contextLimit = entry.contextWindow ?? Infinity;
-  if (!Number.isSafeInteger(outputLimit) || outputLimit < 1024 || (contextLimit !== Infinity && (!Number.isSafeInteger(contextLimit) || contextLimit < 1))) fail('The selected model cannot fit this context and an output allowance of at least 1024 tokens.');
+  if (!Number.isSafeInteger(outputLimit) || outputLimit < 1024 || (contextLimit !== Infinity && (!Number.isSafeInteger(contextLimit) || contextLimit < 1))) fail('所选模型无法同时容纳此上下文和至少 1024 token 的输出额度。');
   const boundary = offset => !(offset > 0 && offset < markdown.length && high(markdown.charCodeAt(offset - 1)) && low(markdown.charCodeAt(offset)));
-  if (ranges !== undefined && !Array.isArray(ranges)) fail('Source ranges must be an array.');
+  if (ranges !== undefined && !Array.isArray(ranges)) fail('源范围必须是数组。');
   const spans = ranges === undefined ? [{ start: 0, end: markdown.length }] : ranges.map(range => {
-    if (!range || !Number.isSafeInteger(range.start) || !Number.isSafeInteger(range.end) || range.start < 0 || range.end <= range.start || range.end > markdown.length || !boundary(range.start) || !boundary(range.end)) fail('Each source range must have valid, nonempty UTF-16 offsets at Unicode code-point boundaries.');
+    if (!range || !Number.isSafeInteger(range.start) || !Number.isSafeInteger(range.end) || range.start < 0 || range.end <= range.start || range.end > markdown.length || !boundary(range.start) || !boundary(range.end)) fail('每个源范围必须提供合法、非空且落在 Unicode 码点边界上的 UTF-16 偏移。');
     return { start: range.start, end: range.end };
   });
   const ordered = [...spans].sort((a, b) => a.start - b.start);
-  if (ordered.some((span, index) => index && span.start < ordered[index - 1].end)) fail('Source ranges must not overlap.');
+  if (ordered.some((span, index) => index && span.start < ordered[index - 1].end)) fail('源范围不能重叠。');
   const plan = (start, end) => {
     const input = { name, markdown: markdown.slice(start, end) }, prompt = promptFor(input);
     const tokens = estimate(prompt);
@@ -106,7 +106,7 @@ function prepareFileChunks(options) {
         if (preferred > 0) end = start + preferred;
       }
       const chunk = plan(start, end);
-      if (chunk.maxTokens < 1024) fail('The selected model cannot fit this context and an output allowance. Reduce the chunk budget or choose another model.');
+      if (chunk.maxTokens < 1024) fail('所选模型无法同时容纳此上下文和输出额度。请减小分块预算或改用其他模型。');
       chunks.push(chunk); start = end;
     }
   }

@@ -99,7 +99,7 @@ describe("parseAgentSettingsBody", () => {
 		assert.ok(clear.ok);
 		assert.equal(clear.settings.search, undefined, "absent engine = back to auto-detect");
 		assert.equal(parseAgentSettingsBody({ search: { engine: "google" } }).ok, false);
-		assert.equal(parseAgentSettingsBody({ search: "tavily" }).ok, false, "search must be an object");
+		assert.equal(parseAgentSettingsBody({ search: "tavily" }).ok, false, "search 必须是对象");
 		assert.equal(parseAgentSettingsBody({ search: { engine: 1 } }).ok, false);
 	});
 
@@ -110,8 +110,8 @@ describe("parseAgentSettingsBody", () => {
 		const bare = parseAgentSettingsBody({ graphTools: {} });
 		assert.ok(bare.ok);
 		assert.deepEqual(bare.settings.graphTools, {}, "explicit subsection with no key = the default ON");
-		assert.equal(parseAgentSettingsBody({ graphTools: "off" }).ok, false, "graphTools must be an object");
-		assert.equal(parseAgentSettingsBody({ graphTools: { enabled: "yes" } }).ok, false, "enabled must be a boolean");
+		assert.equal(parseAgentSettingsBody({ graphTools: "off" }).ok, false, "graphTools 必须是对象");
+		assert.equal(parseAgentSettingsBody({ graphTools: { enabled: "yes" } }).ok, false, "enabled 必须是布尔值");
 		assert.equal(parseAgentSettingsBody({ graphTools: null }).ok, false);
 	});
 
@@ -216,7 +216,7 @@ describe("parseGraphSettingsBody", () => {
 		const absent = parseGraphSettingsBody({ enabled: true });
 		assert.ok(absent.ok);
 		assert.deepEqual(absent.settings, { enabled: true });
-		assert.equal(parseGraphSettingsBody({ rendering: "off" }).ok, false, "rendering must be a boolean");
+		assert.equal(parseGraphSettingsBody({ rendering: "off" }).ok, false, "rendering 必须是布尔值");
 	});
 
 	it("extractionChunkTokens: whole tokens ≥ the 500 floor (extraction-UX redesign, 2026-09-24)", () => {

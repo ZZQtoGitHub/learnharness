@@ -17,8 +17,8 @@ const ui = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 const prose = Source_Sans_3({ subsets: ["latin"], variable: "--font-sans3" });
 
 export const metadata: Metadata = {
-	title: "Learning Harness",
-	description: "A teacher agent with a memory — sessions, quizzes, and a knowledge graph of what you know.",
+	title: "LearnHarness 学习助手",
+	description: "带有记忆的教师智能体——会话、练习，以及记录你已掌握内容的知识图谱。",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 	const { appearance, theme, vars } = readThemeBoot();
 	return (
 		<html
-			lang="en"
+			lang="zh-CN"
 			className={`${theme.mode} ${ui.variable} ${prose.variable}`}
 			style={vars as React.CSSProperties}
 			suppressHydrationWarning

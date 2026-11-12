@@ -4,7 +4,7 @@
  * the chat page loads. Storage is required for automatic delivery, not an
  * optional best-effort side effect of navigating away from the source draft.
  */
-export const OPENING_PROMPT_FAILURE = "Couldn’t open the session. Your message is still here. Try sending again.";
+export const OPENING_PROMPT_FAILURE = "无法打开会话。你的消息仍然保留，可再次发送。";
 
 export interface OpeningPrompt {
 	text: string;

@@ -7,10 +7,10 @@ import { Toggle } from "./controls";
 
 export function claudeCodeStatusLabel(status: ClaudeCodeStatus | null): string {
 	switch (status?.state) {
-		case "not-found": return "Not found";
-		case "meets-minimum": return `Version ${status.version} · meets minimum`;
-		case "update-required": return `Version ${status.version} · update required`;
-		default: return "Version could not be checked";
+		case "not-found": return "未找到";
+		case "meets-minimum": return `版本 ${status.version} · 达到最低要求`;
+		case "update-required": return `版本 ${status.version} · 需要更新`;
+		default: return "无法检查版本";
 	}
 }
 
@@ -40,7 +40,7 @@ export function ClaudeCodeInstallationStatus() {
 				setError(null);
 			}
 		} catch {
-			if (!controller.signal.aborted) setError("Could not load Claude Code settings.");
+			if (!controller.signal.aborted) setError("无法加载 Claude Code 设置。");
 		}
 	}, []);
 	useEffect(() => {
@@ -66,7 +66,7 @@ export function ClaudeCodeInstallationStatus() {
 				notifySettingsSaved("claudeCode");
 			}
 		} catch {
-			if (!controller.signal.aborted) setError("Could not save Claude Code settings.");
+			if (!controller.signal.aborted) setError("无法保存 Claude Code 设置。");
 		} finally {
 			if (!controller.signal.aborted) setSaving(false);
 		}
@@ -106,12 +106,12 @@ export function ClaudeCodeInstallationStatus() {
 		{error && <p role="alert" className="text-xs text-error">{error}</p>}
 		{enabled && <>
 			<div className="flex flex-wrap items-center gap-3">
-				<span role="status" className="text-xs text-muted-foreground">{busy ? "Checking…" : claudeCodeStatusLabel(status)}</span>
-				<Button type="button" size="xs" variant="outline" className="cursor-pointer disabled:cursor-not-allowed" disabled={busy} onClick={() => void refresh()} data-testid="claude-code-check-again">Check again</Button>
+				<span role="status" className="text-xs text-muted-foreground">{busy ? "检查中…" : claudeCodeStatusLabel(status)}</span>
+				<Button type="button" size="xs" variant="outline" className="cursor-pointer disabled:cursor-not-allowed" disabled={busy} onClick={() => void refresh()} data-testid="claude-code-check-again">重新检查</Button>
 			</div>
-			<p className="text-xs leading-relaxed text-muted-foreground"><strong className="font-medium">Install and authenticate Claude Code in your terminal, then select a Claude Code model here.</strong> LearnHarness starts it when needed—no background process required.</p>
-			<p className="text-xs leading-relaxed text-muted-foreground">Checks installation/version only—not authentication, model access, or quota. Claude Code controls billing. Requires v{CLAUDE_CODE_MINIMUM_VERSION}+. <a href="https://code.claude.com/docs/en/setup" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-foreground">Setup ↗</a></p>
-			<p className="text-xs leading-relaxed text-muted-foreground">Verify AI claims independently—they may be inaccurate, incomplete, misleading, or outdated.</p>
+			<p className="text-xs leading-relaxed text-muted-foreground"><strong className="font-medium">在终端中安装并完成 Claude Code 认证，然后在此处选择 Claude Code 模型。</strong> LearnHarness 会在需要时启动它——无需常驻后台进程。</p>
+			<p className="text-xs leading-relaxed text-muted-foreground">仅检查安装与版本——不涉及认证、模型访问或额度。计费由 Claude Code 控制。需要 v{CLAUDE_CODE_MINIMUM_VERSION}+. <a href="https://code.claude.com/docs/en/setup" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-foreground">安装指南 ↗</a></p>
+			<p className="text-xs leading-relaxed text-muted-foreground">请独立核实 AI 的说法——它可能不准确、不完整、具有误导性或已过时。</p>
 		</>}
 	</div>;
 }

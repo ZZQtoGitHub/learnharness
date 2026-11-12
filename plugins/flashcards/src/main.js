@@ -10,11 +10,11 @@ const el = (tag, className, text) => {
   return node;
 };
 const message = error => error instanceof Error ? error.message : String(error);
-const generationSummary = (source, tokens) => `${source} (approximately ${tokens.toLocaleString()} input tokens)`;
+const generationSummary = (source, tokens) => `${source}（约 ${tokens.toLocaleString()} 个输入 token）`;
 const uuid = () => crypto.randomUUID();
 const flashcardsIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 4h12a1 1 0 0 1 1 1v12"/><rect x="3" y="8" width="14" height="13" rx="2"/><path d="M6 12h8M6 16h5"/></svg>';
 const trashIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>';
-const deletionBlocked = 'Wait for generation to finish or cancel it before deleting content.';
+const deletionBlocked = '请等待生成完成或取消生成后再删除内容。';
 const activeBatch = batch => batch && ['running', 'pending', 'queued', 'cancelling'].includes(batch.status);
 function lifetime(...parents) {
   const controller = new AbortController();
@@ -25,19 +25,19 @@ function lifetime(...parents) {
 }
 function parseSteps(text) {
   const parts = text.trim().split(/[\s,]+/).filter(Boolean);
-  if (!parts.length) throw new Error('Enter at least one learning step.');
+  if (!parts.length) throw new Error('请至少输入一个学习步骤。');
   const values = parts.map(part => {
     const match = /^(\d+)(m|h)?$/i.exec(part);
-    if (!match) throw new Error('Use whole minutes, separated by spaces or commas (for example 1m 10m).');
+    if (!match) throw new Error('请使用整数分钟，用空格或逗号分隔（例如 1m 10m）。');
     return Number(match[1]) * (match[2]?.toLowerCase() === 'h' ? 60 : 1);
   });
-  if (values.some((value, index) => !Number.isSafeInteger(value) || value <= 0 || value >= 1440 || (index > 0 && value <= values[index - 1]))) throw new Error('Steps must be increasing positive whole minutes, each shorter than one day.');
+  if (values.some((value, index) => !Number.isSafeInteger(value) || value <= 0 || value >= 1440 || (index > 0 && value <= values[index - 1]))) throw new Error('各步骤必须是递增的正整数分钟，且每个都小于一天。');
   return values;
 }
 
 export function activate(ctx) {
   for (const capability of ['mountMarkdown', 'mountKnowledgePicker', 'mountTree', 'openSurface', 'openMenu']) {
-    if (typeof ctx.ui?.[capability] !== 'function') throw new Error(`Flashcards requires a newer LearnHarness host with ctx.ui.${capability}. Please update LearnHarness.`);
+    if (typeof ctx.ui?.[capability] !== 'function') throw new Error(`Flashcards 需要更新版本的 LearnHarness 宿主，需提供 ctx.ui.${capability}。请更新 LearnHarness。`);
   }
   let snapshot = null, refreshing = null, refreshAgain = false;
   const observers = new Set(), registrations = [];
@@ -109,18 +109,18 @@ export function activate(ctx) {
       const preflight = await ctx.call('preflight', { propositionIds: [...propositionIds] });
       if (signal.aborted) return;
       const requestId = uuid();
-      dialog('Generate flashcards', signal, ({ root, actions, signal: ds, run, close }) => {
-        root.append(el('p', 'fc-muted', generationSummary(`${preflight.propositionCount} propositions`, preflight.estimatedTokens)));
-        button(actions, 'Start', run(async () => { if (await mutate('start-generation', { preflightId: preflight.id, requestId }, ds)) close(); }), ds, { variant: 'default' });
+      dialog('生成记忆卡', signal, ({ root, actions, signal: ds, run, close }) => {
+        root.append(el('p', 'fc-muted', generationSummary(`${preflight.propositionCount} 个命题`, preflight.estimatedTokens)));
+        button(actions, '开始', run(async () => { if (await mutate('start-generation', { preflightId: preflight.id, requestId }, ds)) close(); }), ds, { variant: 'default' });
       });
     } catch (error) { if (!signal.aborted) showError(message(error)); }
   }
   function confirmFileGeneration(preflight, notices, signal, onStarted) {
     const requestId = uuid();
-    dialog('Generate flashcards', signal, ({ root, actions, signal: ds, run, close }) => {
+    dialog('生成记忆卡', signal, ({ root, actions, signal: ds, run, close }) => {
       root.append(el('p', 'fc-muted fc-file-name', generationSummary(preflight.name, preflight.estimatedTokens)));
       for (const notice of notices) root.append(el('p', 'fc-muted', notice));
-      button(actions, 'Start', run(async () => {
+      button(actions, '开始', run(async () => {
         const state = await ctx.call('start-generation', { preflightId: preflight.id, requestId });
         if (ds.aborted) return;
         publish(state); close(); onStarted(state);
@@ -129,16 +129,16 @@ export function activate(ctx) {
   }
   function cueFields(root, cue = {}) {
     return {
-      question: field(root, 'Question (Markdown)', cue.question, 'textarea'),
-      answer: field(root, 'Answer (Markdown)', cue.answer, 'textarea'),
+      question: field(root, '问题（Markdown）', cue.question, 'textarea'),
+      answer: field(root, '答案（Markdown）', cue.answer, 'textarea'),
     };
   }
   function createCard(deck, proposition, signal, onCreated) {
     const requestId = uuid();
-    dialog(proposition ? 'Add cue' : 'Create card', signal, ({ root, actions, signal: ds, run, close }) => {
-      const name = proposition ? null : field(root, 'Name', '');
+    dialog(proposition ? '添加记忆项' : '新建卡片', signal, ({ root, actions, signal: ds, run, close }) => {
+      const name = proposition ? null : field(root, '名称', '');
       const { question, answer } = cueFields(root);
-      button(actions, 'Save', run(async () => {
+      button(actions, '保存', run(async () => {
         const created = await ctx.call(proposition ? 'create-cue' : 'create-card', {
           ...(proposition ? { propositionId: proposition.id } : { deckId: deck.id, name: name.value }),
           question: question.value, answer: answer.value, requestId,
@@ -149,9 +149,9 @@ export function activate(ctx) {
     });
   }
   function editCue(proposition, cue, signal) {
-    dialog('Edit cue', signal, ({ root, actions, signal: ds, run, close }) => {
+    dialog('编辑记忆项', signal, ({ root, actions, signal: ds, run, close }) => {
       const { question, answer } = cueFields(root, cue);
-      button(actions, 'Save', run(async () => { if (await mutate('save-cue', { propositionId: proposition.id, cueId: cue.id, question: question.value, answer: answer.value, version: proposition.version }, ds)) close(); }), ds, { variant: 'default' });
+      button(actions, '保存', run(async () => { if (await mutate('save-cue', { propositionId: proposition.id, cueId: cue.id, question: question.value, answer: answer.value, version: proposition.version }, ds)) close(); }), ds, { variant: 'default' });
     });
   }
   function deleteContents(scope, signal) {
@@ -162,14 +162,14 @@ export function activate(ctx) {
     const selected = new Set(scope.cueIds ?? []);
     const count = state.propositions.reduce((n, p) => n + p.cues.filter(c => !c.deleted && (whole.has(p.id) || selected.has(c.id))).length, 0);
     const request = { ...structuredClone(scope), revision: state.revision, requestId: uuid() };
-    dialog('Delete flashcards?', signal, ({ root, actions, signal: ds, run, close }) => {
+    dialog('删除记忆卡？', signal, ({ root, actions, signal: ds, run, close }) => {
       const description = el('div', 'fc-muted fc-delete-description'); root.append(description);
-      markdown(description, `${count} ${count === 1 ? 'cue' : 'cues'} will be deleted from every deck. Targets with no remaining cues and their schedules will be removed. Past review statistics are kept. Learning-graph data is unchanged.`, ds);
+      markdown(description, `将从每个牌组中删除 ${count} 个记忆项。没有剩余记忆项的命题及其复习计划会一并移除。历史复习统计会保留，学习图谱数据不变。`, ds);
       const label = el('label', 'fc-check'), emptyDecks = el('input'); emptyDecks.type = 'checkbox'; emptyDecks.checked = true;
-      label.append(emptyDecks, document.createTextNode('Delete empty decks too')); root.append(label);
+      label.append(emptyDecks, document.createTextNode('同时删除空牌组')); root.append(label);
       const note = el('p', 'fc-muted'); root.append(note);
       let submitted;
-      const confirm = button(actions, 'Delete', run(async () => {
+      const confirm = button(actions, '删除', run(async () => {
         submitted ??= { ...request, deleteEmptyDecks: emptyDecks.checked };
         emptyDecks.disabled = true;
         if (await mutate('delete-content', submitted, ds)) close();
@@ -190,37 +190,37 @@ export function activate(ctx) {
       markdown(card, cue.question, ds); markdown(answer, cue.answer, ds);
       card.append(answer); root.append(card);
       if (!archive) {
-        button(actions, 'Edit', () => { close(); editCue(proposition, cue, signal); }, ds);
-        const deletion = button(actions, 'Delete', () => { close(); deleteCue(proposition, cue, signal); }, ds, { variant: 'destructive' });
+        button(actions, '编辑', () => { close(); editCue(proposition, cue, signal); }, ds);
+        const deletion = button(actions, '删除', () => { close(); deleteCue(proposition, cue, signal); }, ds, { variant: 'destructive' });
         observe(current => { if (!current) return; const blocked = !!activeBatch(current.batch); deletion.update({ disabled: blocked, title: blocked ? deletionBlocked : undefined }); }, ds);
       }
-    }, 'Close');
+    }, '关闭');
   }
   function memberships(proposition, state, signal) {
-    dialog('Deck memberships', signal, ({ root, actions, signal: ds, run, close }) => {
-      root.append(el('p', 'fc-muted', 'Memberships share the same cues, schedule, and history. Keep at least one deck.'));
+    dialog('牌组归属', signal, ({ root, actions, signal: ds, run, close }) => {
+      root.append(el('p', 'fc-muted', '归属关系共享同一批记忆项、复习计划与历史记录。请至少保留一个牌组。'));
       const choices = state.decks.map(deck => {
         const label = el('label', 'fc-check'), input = el('input'); input.type = 'checkbox'; input.checked = proposition.memberships.includes(deck.id);
         label.append(input, document.createTextNode(deck.name)); root.append(label); return { id: deck.id, input };
       });
-      button(actions, 'Save memberships', run(async () => {
+      button(actions, '保存归属', run(async () => {
         const deckIds = choices.filter(choice => choice.input.checked).map(choice => choice.id);
-        if (!deckIds.length) throw new Error('Choose at least one deck.');
+        if (!deckIds.length) throw new Error('请至少选择一个牌组。');
         if (await mutate('set-memberships', { propositionId: proposition.id, deckIds }, ds)) close();
       }), ds, { variant: 'default' });
     });
   }
   function editDeck(deck, signal) {
-    dialog(deck ? 'Deck settings' : 'Create deck', signal, ({ root, actions, signal: ds, run, close }) => {
-      const name = field(root, 'Deck name', deck?.name || ''), limit = deck ? field(root, 'New propositions per day', deck.newLimit, 'number') : null;
+    dialog(deck ? '牌组设置' : '新建牌组', signal, ({ root, actions, signal: ds, run, close }) => {
+      const name = field(root, '牌组名称', deck?.name || ''), limit = deck ? field(root, '每天新增命题数', deck.newLimit, 'number') : null;
       if (limit) { limit.min = '0'; limit.step = '1'; }
-      button(actions, deck ? 'Save' : 'Create', run(async () => {
-        if (!name.value.trim()) throw new Error('Enter a deck name.');
+      button(actions, deck ? '保存' : '创建', run(async () => {
+        if (!name.value.trim()) throw new Error('请输入牌组名称。');
         const input = deck ? { id: deck.id, name: name.value, newLimit: Number(limit.value) } : { name: name.value };
         if (await mutate(deck ? 'save-deck' : 'create-deck', input, ds)) close();
       }), ds, { variant: 'default' });
       if (deck) {
-        const deletion = button(actions, 'Delete deck…', () => { close(); deleteContents({ deckIds: [deck.id] }, signal); }, ds, { variant: 'destructive' });
+        const deletion = button(actions, '删除牌组…', () => { close(); deleteContents({ deckIds: [deck.id] }, signal); }, ds, { variant: 'destructive' });
         observe(current => { if (!current) return; const blocked = !!activeBatch(current.batch); deletion.update({ disabled: blocked, title: blocked ? deletionBlocked : undefined }); }, ds);
       }
     });
@@ -236,7 +236,7 @@ export function activate(ctx) {
     const practice = scope => review.openPractice(buildPracticeCards(snapshot, scope));
     const pickerSlot = el('div', 'fc-picker'), fileInput = el('input'), fileStatus = el('p', 'fc-muted fc-file-status');
     const canConvertFiles = typeof ctx.documents?.toMarkdown === 'function';
-    fileInput.type = 'file'; fileInput.multiple = false; fileInput.hidden = true; fileInput.setAttribute('aria-label', 'Choose a file for flashcards');
+    fileInput.type = 'file'; fileInput.multiple = false; fileInput.hidden = true; fileInput.setAttribute('aria-label', '选择用于生成记忆卡的文件');
     fileStatus.setAttribute('role', 'status');
     let generationIds = [], generationButton, fileButton, filePreparing = false, cleanupMessage = null;
     function updateGenerationButtons() {
@@ -248,36 +248,36 @@ export function activate(ctx) {
       generationIds = [...ids]; picker.update({ value: generationIds }); updateGenerationButtons();
     } }, { signal }), signal);
     toolbar.append(pickerSlot);
-    generationButton = button(toolbar, 'Generate', () => confirmGeneration(generationIds, signal, showError), signal, { disabled: true, variant: 'default' });
-    fileButton = button(toolbar, 'Generate from file…', () => fileInput.click(), signal, { disabled: !canConvertFiles, title: canConvertFiles ? undefined : 'Update LearnHarness to generate flashcards from files.' });
+    generationButton = button(toolbar, '生成', () => confirmGeneration(generationIds, signal, showError), signal, { disabled: true, variant: 'default' });
+    fileButton = button(toolbar, '从文件生成…', () => fileInput.click(), signal, { disabled: !canConvertFiles, title: canConvertFiles ? undefined : '请更新 LearnHarness 以支持从文件生成记忆卡。' });
     toolbar.append(fileInput);
     const deckPanel = el('section', 'fc-deck-panel'), deckToolbar = el('div', 'fc-deck-toolbar');
-    deckPanel.setAttribute('aria-label', 'Decks');
+    deckPanel.setAttribute('aria-label', '牌组');
     const searchLabel = el('label', 'fc-search'), search = el('input', 'fc-input');
-    search.type = 'search'; search.placeholder = 'Search decks, propositions, and cues'; search.setAttribute('aria-label', 'Search flashcards'); searchLabel.append(search);
+    search.type = 'search'; search.placeholder = '搜索牌组、命题与记忆项'; search.setAttribute('aria-label', '搜索记忆卡'); searchLabel.append(search);
     const batchArea = el('div'), selectionActions = el('div', 'fc-actions fc-selection-actions'), selectionCount = el('span', 'fc-muted'), treeSlot = el('div', 'fc-tree');
     const scopeActions = el('div', 'fc-actions fc-scope-actions'), selectionSummary = el('div', 'fc-selection-summary');
     selectionSummary.append(selectionCount); selectionActions.append(scopeActions, selectionSummary);
     let selection = { cueIds: [], propositionIds: [], count: 0 }, tree, hasPracticeCards = false;
     const currentScope = () => selection.count ? { cueIds: [...selection.cueIds], propositionIds: [...selection.propositionIds] } : {};
-    const reviewAction = button(scopeActions, 'Review all', () => review.open(currentScope()), signal);
-    const practiceAction = button(scopeActions, 'Practice all', () => practice(currentScope()), signal, { disabled: true });
+    const reviewAction = button(scopeActions, '复习全部', () => review.open(currentScope()), signal);
+    const practiceAction = button(scopeActions, '练习全部', () => practice(currentScope()), signal, { disabled: true });
     const deleteSlot = el('span', 'fc-delete-selected');
-    const deleteAction = button(deleteSlot, 'Delete selected', () => deleteContents({ cueIds: [...selection.cueIds], propositionIds: [...selection.emptyPropositionIds], deckIds: [...selection.emptyDeckIds] }, signal), signal, { icon: trashIcon, iconOnly: true, size: 'icon-sm', variant: 'ghost', title: 'Delete selected' });
-    const clearSelection = button(selectionSummary, 'Clear', () => tree.clearSelection(), signal, { variant: 'ghost', disabled: true });
+    const deleteAction = button(deleteSlot, '删除所选', () => deleteContents({ cueIds: [...selection.cueIds], propositionIds: [...selection.emptyPropositionIds], deckIds: [...selection.emptyDeckIds] }, signal), signal, { icon: trashIcon, iconOnly: true, size: 'icon-sm', variant: 'ghost', title: '删除所选' });
+    const clearSelection = button(selectionSummary, '清除', () => tree.clearSelection(), signal, { variant: 'ghost', disabled: true });
     const updateSelection = () => {
       const selected = selection.count > 0;
-      selectionCount.textContent = `${selection.count} selected`;
-      reviewAction.update({ label: selected ? 'Review selected' : 'Review all', disabled: selected && !selection.cueIds.length });
-      practiceAction.update({ label: selected ? 'Practice selected' : 'Practice all', disabled: selected ? !selection.cueIds.length : !hasPracticeCards });
+      selectionCount.textContent = `${selection.count} 项已选`;
+      reviewAction.update({ label: selected ? '复习所选' : '复习全部', disabled: selected && !selection.cueIds.length });
+      practiceAction.update({ label: selected ? '练习所选' : '练习全部', disabled: selected ? !selection.cueIds.length : !hasPracticeCards });
       const blocked = !!activeBatch(snapshot?.batch);
-      deleteAction.update({ disabled: !selected || blocked, title: blocked ? deletionBlocked : 'Delete selected' });
+      deleteAction.update({ disabled: !selected || blocked, title: blocked ? deletionBlocked : '删除所选' });
       if (selected) scopeActions.append(deleteSlot); else deleteSlot.remove();
       clearSelection.update({ disabled: !selected });
     };
     updateSelection();
     deckToolbar.append(searchLabel);
-    button(deckToolbar, 'Create deck', () => editDeck(null, signal), signal);
+    button(deckToolbar, '新建牌组', () => editDeck(null, signal), signal);
     deckPanel.append(deckToolbar, selectionActions, treeSlot);
     const dashboardSlot = el('div', 'fc-dashboard-slot');
     root.append(toolbar, fileStatus, error, batchArea, deckPanel, dashboardSlot); container.append(root);
@@ -304,12 +304,12 @@ export function activate(ctx) {
     fileInput.addEventListener('change', async () => {
       const files = [...(fileInput.files || [])]; fileInput.value = '';
       if (signal.aborted || !canConvertFiles || filePreparing || activeBatch(snapshot?.batch) || !files.length) return;
-      if (files.length !== 1) { showError('Choose one file at a time.'); return; }
-      filePreparing = true; error.textContent = ''; fileStatus.textContent = 'Converting file…'; updateGenerationButtons();
+      if (files.length !== 1) { showError('一次只能选择一个文件。'); return; }
+      filePreparing = true; error.textContent = ''; fileStatus.textContent = '正在转换文件…'; updateGenerationButtons();
       try {
         const converted = await ctx.documents.toMarkdown(files[0], { signal });
         if (signal.aborted) return;
-        fileStatus.textContent = 'Preparing generation…';
+        fileStatus.textContent = '正在准备生成…';
         const preflight = await ctx.call('preflight-file', { name: converted.name, markdown: converted.markdown });
         if (signal.aborted) return;
         if (preflight.existingSourceId) {
@@ -333,14 +333,14 @@ export function activate(ctx) {
       if (!batch || (batch.status === 'completed' && !batch.error && !batch.chunks.some(chunk => chunk.error) && !emptyFileResult)) return;
       const bs = batchScope.signal, panel = el('section', 'fc-batch'); batchArea.append(panel);
       if (batch.kind === 'file') panel.append(el('p', 'fc-muted fc-file-name', batch.name));
-      panel.append(el('p', '', `Generation: ${batch.status} · ${batch.completed}/${batch.total} chunks · ${batch.added} cues added`));
-      if (emptyFileResult) panel.append(el('p', '', 'No flashcards were generated from this file.'));
-      for (const chunk of batch.chunks.filter(chunk => chunk.error)) panel.append(el('p', 'fc-error', `Chunk ${chunk.id}: ${chunk.error}`));
+      panel.append(el('p', '', `生成进度：${batch.status} · ${batch.completed}/${batch.total} 个分块 · 新增 ${batch.added} 个记忆项`));
+      if (emptyFileResult) panel.append(el('p', '', '该文件未生成任何记忆卡。'));
+      for (const chunk of batch.chunks.filter(chunk => chunk.error)) panel.append(el('p', 'fc-error', `分块 ${chunk.id}：${chunk.error}`));
       if (batch.error) panel.append(el('p', 'fc-error', batch.error));
       const controls = el('div', 'fc-actions'); panel.append(controls);
-      if (activeBatch(batch)) button(controls, 'Cancel generation', guarded(() => mutate('cancel-generation', { batchId: batch.id }, signal)), bs);
-      if (!activeBatch(batch) && (batch.kind === 'file' ? batch.failedChunkIds?.length : batch.failedTargetIds?.length)) button(controls, 'Retry failed…', () => batch.kind === 'file' ? retryFileGeneration(batch.id) : confirmGeneration(batch.failedTargetIds, signal, showError), bs);
-      if (batch.error) button(controls, 'Retry saving', guarded(() => mutate('resume-results', {}, signal)), bs);
+      if (activeBatch(batch)) button(controls, '取消生成', guarded(() => mutate('cancel-generation', { batchId: batch.id }, signal)), bs);
+      if (!activeBatch(batch) && (batch.kind === 'file' ? batch.failedChunkIds?.length : batch.failedTargetIds?.length)) button(controls, '重试失败项…', () => batch.kind === 'file' ? retryFileGeneration(batch.id) : confirmGeneration(batch.failedTargetIds, signal, showError), bs);
+      if (batch.error) button(controls, '重试保存', guarded(() => mutate('resume-results', {}, signal)), bs);
     }
     search.addEventListener('input', () => { if (snapshot) tree.update(snapshot, search.value); }, { signal });
     observe((state, loadError) => {
@@ -369,11 +369,11 @@ export function activate(ctx) {
     const settingsRows = settings => {
       const row = (key, label, value, type, parse = value => value, extras = {}) => ({ key, label, value, type, ...extras, onChange: async value => { try { await save({ [key]: parse(value) }); } catch (cause) { showError(cause); throw cause; } } });
       return [
-        row('retention', 'Desired retention (%)', settings.retention * 100, 'number', value => Number(value) / 100, { min: 70, max: 99, step: 1 }),
-        row('learningSteps', 'Learning steps (minutes)', settings.learningSteps.map(value => `${value}m`).join(' '), 'text', parseSteps),
-        row('relearningSteps', 'Relearning steps (minutes)', settings.relearningSteps.map(value => `${value}m`).join(' '), 'text', parseSteps),
-        row('dayStart', 'Day starts at (hour)', settings.dayStart, 'number', Number, { min: 0, max: 23, step: 1 }),
-        row('chunkBudget', 'Generation chunk budget (estimated tokens)', settings.chunkBudget, 'number', Number, { min: 1, step: 1 }),
+        row('retention', '目标保持率（%）', settings.retention * 100, 'number', value => Number(value) / 100, { min: 70, max: 99, step: 1 }),
+        row('learningSteps', '学习步骤（分钟）', settings.learningSteps.map(value => `${value}m`).join(' '), 'text', parseSteps),
+        row('relearningSteps', '重学步骤（分钟）', settings.relearningSteps.map(value => `${value}m`).join(' '), 'text', parseSteps),
+        row('dayStart', '学习日起点（小时）', settings.dayStart, 'number', Number, { min: 0, max: 23, step: 1 }),
+        row('chunkBudget', '生成分块预算（预估 token）', settings.chunkBudget, 'number', Number, { min: 1, step: 1 }),
       ];
     };
     const changeModels = async patch => {
@@ -382,7 +382,7 @@ export function activate(ctx) {
       try { await save(patch); if (!signal.aborted) overrideDraft = false; }
       finally { modelBusy = false; if (!signal.aborted) updateModels(snapshot.settings); }
     };
-    const followCheapRow = settings => ({ key: 'followCheapSlot', label: 'Model', description: 'Follow cheap slot', type: 'toggle', value: followingCheap(settings), disabled: modelBusy,
+    const followCheapRow = settings => ({ key: 'followCheapSlot', label: '模型', description: '跟随低成本通道', type: 'toggle', value: followingCheap(settings), disabled: modelBusy,
       onChange: async follow => {
         if (modelBusy || signal.aborted) return;
         if (follow) await changeModels({ modelOverride: null, thinkingOverride: null });

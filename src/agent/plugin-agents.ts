@@ -8,6 +8,7 @@ import type {
 } from "../core/plugin-agents.ts";
 import type { PiEngine } from "./models.ts";
 import { usageWasAdmitted } from "./subscription-request-cycle.ts";
+import { withLanguage } from "./language.ts";
 
 import type { PluginAgentRecordStore } from "../core/ports.ts";
 export type { PluginAgentRecordStore } from "../core/ports.ts";
@@ -169,7 +170,7 @@ export function createPluginAgentService(deps: PluginAgentServiceDeps): PluginAg
 				const agent = new Agent({
 					sessionId: s.record.id,
 					initialState: {
-						systemPrompt: d.instructions, model: engine.model,
+						systemPrompt: withLanguage(d.instructions), model: engine.model,
 						thinkingLevel: engine.level ?? d.model.thinkingLevel,
 						messages: clone(modelHistory(s.record.messages)), tools,
 					},

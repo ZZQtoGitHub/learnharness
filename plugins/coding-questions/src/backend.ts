@@ -6,7 +6,7 @@ export function activate(ctx: PluginBackendContext): () => void {
   const unregisterQuestion = ctx.registerQuestionType({
     ...definition,
     gradeAnswer(context) {
-      if (typeof context.answer !== "string") throw new Error("Coding answers must be strings.");
+      if (typeof context.answer !== "string") throw new Error("编程题答案必须是字符串。");
       return runTests({
         dataDirectory: ctx.dataDirectory,
         questionId: context.questionId,
@@ -19,7 +19,7 @@ export function activate(ctx: PluginBackendContext): () => void {
   const unregisterProblem = ctx.registerProblemType({
     ...problemDefinition,
     processSubmission(context) {
-      if (typeof context.submission !== "string") throw new Error("Coding submissions must be strings.");
+      if (typeof context.submission !== "string") throw new Error("编程题提交内容必须是字符串。");
       return runTests({
         dataDirectory: ctx.dataDirectory,
         questionId: context.problemId,

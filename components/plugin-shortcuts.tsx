@@ -42,7 +42,7 @@ export function usePluginShortcutPage(pathname: string, read: () => PluginPageAc
 }
 export function pluginShortcutScopeLabel(candidate: PluginShortcutCandidate): string {
 	const scope = candidate.shortcut.scope;
-	return scope === "app" ? "App-wide" : [...(scope.sessions ?? []).map(kind => kind === "teaching" ? "Teaching" : "Practice"), ...(scope.views?.length ? [`Views: ${scope.views.join(", ")}`] : [])].join(" · ");
+	return scope === "app" ? "全应用" : [...(scope.sessions ?? []).map(kind => kind === "teaching" ? "教学" : "练习"), ...(scope.views?.length ? [`视图: ${scope.views.join(", ")}`] : [])].join(" · ");
 }
 
 /** Window-bubble fallback only; never an independent low-level plugin listener. */
