@@ -103,7 +103,7 @@ it("real route plus in-memory ledgers and faux stages reprocess identical import
 it("route returns 400 without files", async () => {
 	const response = await POST(request([]));
 	assert.equal(response.status, 400);
-	assert.deepEqual(await response.json(), { results: [], error: "no files" });
+	assert.deepEqual(await response.json(), { results: [], error: "没有文件" });
 });
 
 function upload(files: { name: string; bytes: Uint8Array<ArrayBuffer> | string }[]) {
@@ -159,7 +159,7 @@ it("an off-list type and a non-text file are refused with a short message before
 		const { results } = await (await POST(upload([{ name: "deck.pptx", bytes: "plain words" }, { name: "slides.pptx", bytes: pdf }, { name: "notes.txt", bytes: zip }]))).json();
 		assert.deepEqual(results.map((r: { filePath: string; ok: boolean; outcome: string; error: string }) => [r.filePath, r.ok, r.outcome, r.error]).sort(), [
 			["deck.pptx", false, "failed", "This file type isn't supported. Use text, Markdown, or PDF."],
-			["notes.txt", false, "failed", "This file isn't plain text."],
+			["notes.txt", false, "failed", "这个文件不是纯文本。"],
 			["slides.pptx", false, "failed", "This file type isn't supported. Use text, Markdown, or PDF."],
 		]);
 		assert.equal(imports, 0); assert.deepEqual(registered, []);
@@ -172,7 +172,7 @@ it("only a zero byte in the first 8 KiB makes a file not plain text", async () =
 	const text = (nulAt: number) => { const bytes = new Uint8Array(8193).fill(0x61); bytes[nulAt] = 0; return bytes; };
 	const { results } = await (await POST(upload([{ name: "inside.txt", bytes: text(8191) }, { name: "outside.txt", bytes: text(8192) }]))).json();
 	const byName = (name: string) => results.find((r: { filePath: string }) => r.filePath === name);
-	assert.equal(byName("inside.txt").error, "This file isn't plain text.");
+	assert.equal(byName("inside.txt").error, "这个文件不是纯文本。");
 	assert.equal(byName("outside.txt").outcome, "completed");
 	assert.deepEqual(received, ["outside.txt"]);
 });
@@ -197,7 +197,7 @@ it("PDFs with nothing to import are refused before any model call", async () => 
 	const { results } = await response.json();
 	assert.equal(calls, 0);
 	const errorOf = (name: string) => results.find((r: { filePath: string }) => r.filePath === name);
-	for (const [name, error] of [["scan.pdf", "OCR not supported yet."], ["broken.pdf", "Could not open this PDF."], ["huge.pdf", "Too long. Max 1,000 pages."]] as const) {
+	for (const [name, error] of [["scan.pdf", "暂不支持 OCR。"], ["broken.pdf", "无法打开这个 PDF。"], ["huge.pdf", "页数过多，上限 1,000 页。"]] as const) {
 		assert.equal(errorOf(name).ok, false);
 		assert.equal(errorOf(name).outcome, "failed");
 		assert.equal(errorOf(name).error, error);
@@ -238,7 +238,7 @@ for (const split of [false, true]) it(`server refuses actual file bytes over 25 
 	req.headers.set("content-length", "1"); // not a trustworthy bound
 	const response = await POST(req);
 	assert.equal(response.status, 413);
-	assert.deepEqual(await response.json(), { results: [], error: "Too big. Max 25 MB." });
+	assert.deepEqual(await response.json(), { results: [], error: "文件过大，上限 25 MB。" });
 	assert.equal(calls, 0);
 });
 

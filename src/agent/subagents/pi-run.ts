@@ -55,6 +55,12 @@ export interface SubagentRunOptions {
 	 *  "job:<role>"). Absent or env-off → no observer.
 	 *  Also identifies the source in opt-in LH_BACKGROUND_CAPTURE captures. */
 	chatId?: string;
+	/** zh-CN seam: machine-facing prompts (extractor/auditor submit JSON to
+	 *  the pipeline, never prose to the learner) must reach the model
+	 *  byte-identical — their text is a locked contract (the extraction tests
+	 *  hash it), and a "write in Chinese" tail would invite translated values.
+	 *  Default true: learner-facing subagents get the directive. */
+	localizePrompt?: boolean;
 }
 
 export interface SubagentRunResult {
@@ -88,7 +94,7 @@ export async function runSubagent(tools: AgentTool<any, any>[], opts: SubagentRu
 		// One unsaved conversation per invocation, stable through every turn.
 		sessionId,
 		initialState: {
-			systemPrompt: withLanguage(opts.systemPrompt),
+			systemPrompt: opts.localizePrompt === false ? opts.systemPrompt : withLanguage(opts.systemPrompt),
 			model: engine.model,
 			thinkingLevel: engine.level,
 			tools,

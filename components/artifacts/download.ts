@@ -7,15 +7,22 @@
 
 /** Slugify a demo title into a filename stem — lowercase, accents folded,
  *  runs of non-alphanumerics collapsed to "-", trimmed, capped at 64
- *  chars. Empty/fully-symbolic titles fall back to "demo". */
+ *  chars. Empty/fully-symbolic titles fall back to "demo".
+ *
+ *  Letters and digits of ANY script survive: `a.download` takes the name
+ *  verbatim, so a 简体中文 title keeps its own name instead of collapsing to
+ *  the fallback. */
 export function slugFilename(title: string): string {
-	const slug = title
-		.toLowerCase()
-		.normalize("NFKD")
-		.replace(/[\u0300-\u036f]/g, "")
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-+|-+$/g, "")
-		.slice(0, 64);
+	const slug = Array.from(
+		title
+			.toLowerCase()
+			.normalize("NFKD")
+			.replace(/[\u0300-\u036f]/g, "")
+			.replace(/[^\p{L}\p{N}]+/gu, "-")
+			.replace(/^-+|-+$/g, ""),
+	)
+		.slice(0, 64)
+		.join("");
 	return slug || "demo";
 }
 

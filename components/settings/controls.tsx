@@ -105,6 +105,23 @@ export function SettingsMenuTrigger({
 	</button>;
 }
 
+/** The testid slug a label derives, with a hash fallback.
+ *
+ *  Labels are localized now, so the ASCII slug can come out EMPTY ("代码连字"
+ *  → ""). Callers whose label is localized pin `testid` explicitly; this
+ *  fallback keeps any un-pinned one UNIQUE instead of collapsing every
+ *  Chinese label onto the same "toggle-". */
+function labelSlug(label: string): string {
+	const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+	if (slug) return slug;
+	let hash = 0x811c9dc5;
+	for (const char of label) {
+		hash ^= char.codePointAt(0) ?? 0;
+		hash = Math.imul(hash, 0x01000193) >>> 0;
+	}
+	return `label-${hash.toString(16).padStart(8, "0")}`;
+}
+
 /** The on/off switch — a plain button in the switch role. */
 export function Toggle({
 	checked,
@@ -138,7 +155,7 @@ export function Toggle({
 			aria-label={label}
 			{...(title ? { title } : {})}
 			disabled={disabled}
-			data-testid={testid ?? `toggle-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+			data-testid={testid ?? `toggle-${labelSlug(label)}`}
 			onClick={() => onChange(!checked)}
 			className={cn(
 				"relative h-4.5 w-8 shrink-0 rounded-full border border-border transition-colors",

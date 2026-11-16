@@ -407,6 +407,7 @@ export function AppearanceSection({
 				<Toggle
 					checked={resolved.codeLigatures}
 					label="代码连字"
+					testid="toggle-code-ligatures"
 					onChange={(on) => onSectionChange({ ...appearance, codeLigatures: on })}
 				/>
 			</SettingsRow>
@@ -414,6 +415,7 @@ export function AppearanceSection({
 				<Toggle
 					checked={appearance?.sessionNameSerif ?? true}
 					label="会话名称使用衬线体"
+					testid="toggle-session-names-serif"
 					onChange={(on) => onSectionChange({ ...appearance, sessionNameSerif: on })}
 				/>
 			</SettingsRow>

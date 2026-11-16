@@ -136,7 +136,7 @@ it("rich statement actions keep native Space in both viewing and picking, while 
 			onToggleCluster={() => {}} onToggleChain={() => {}} onToggleNodes={(ids, next) => toggles.push({ ids, next })}
 			onClear={() => {}} onDelete={() => {}} onClose={() => {}} />); });
 		const row = document.querySelector<HTMLElement>('[data-testid="prop-row-n1"]')!;
-		for (const selector of ['[aria-label="Copy code"]', '[aria-label="Copy equation source"]', '[data-streamdown="link"]']) {
+		for (const selector of ['[aria-label="复制代码"]', '[aria-label="复制公式源码"]', '[data-streamdown="link"]']) {
 			const action = row.querySelector<HTMLElement>(selector)!; assert.ok(action, selector);
 			await act(async () => { action.dispatchEvent(new dom.window.Event("pointerdown", { bubbles: true })); });
 			action.focus();

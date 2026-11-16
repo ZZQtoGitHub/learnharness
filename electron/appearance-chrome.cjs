@@ -52,7 +52,9 @@ function readAppearance(dataDir) {
 			const custom = JSON.parse(fs.readFileSync(path.join(dataDir, "themes", `${id}.json`), "utf8"));
 			// Match the data-only core parser: malformed files render Default,
 			// including files with a valid background but an invalid other ink.
-			if (typeof custom?.name === "string" && custom.name.trim() && /[a-z0-9]/i.test(custom.name.normalize("NFD")) &&
+			// Any non-empty name is legal (core: names without ASCII letters or
+			// digits take a hashed id; the name itself is only a label).
+			if (typeof custom?.name === "string" && custom.name.trim() &&
 				(custom.mode === "dark" || custom.mode === "light") && custom.colors && !Array.isArray(custom.colors) &&
 				COLOR_KEYS.every(key => typeof custom.colors[key] === "string" && HEX.test(custom.colors[key]))) {
 				theme = { mode: custom.mode, background: custom.colors.background };

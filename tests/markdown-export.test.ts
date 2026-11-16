@@ -59,12 +59,24 @@ describe("GET /api/chats/:id/markdown", () => {
 		assert.ok(!body.includes("m1"), "anchorless — no message-id provenance in the user-facing export");
 	});
 
-	it("an unsalvageable title falls back to 'session'", async () => {
-		const chat = createChat("日本語"); // no ascii alphanumerics survive the slug
+	it("a title with no ASCII alphanumerics keeps its own name via filename*", async () => {
+		const chat = createChat("日本語"); // nothing survives the ASCII slug…
 		saveMessages(chat.id, [{ id: "m1", role: "user", content: "hello" }]);
 		const res = await GET(new Request("http://x/api"), { params: Promise.resolve({ id: chat.id }) });
 		assert.equal(res.status, 200);
-		assert.ok((res.headers.get("content-disposition") ?? "").includes('filename="session.md"'));
+		const disposition = res.headers.get("content-disposition") ?? "";
+		assert.ok(disposition.includes('filename="session.md"'), "ASCII clients still get a safe name");
+		// …but the real title rides the RFC 5987 form, so downloads are distinguishable.
+		assert.ok(disposition.includes("filename*=UTF-8''%E6%97%A5%E6%9C%AC%E8%AA%9E.md"), "the UTF-8 name is the title");
+	});
+
+	it("a Chinese title downloads under its own name, not the fallback", async () => {
+		const chat = createChat("关系数据库：连接与范式");
+		saveMessages(chat.id, [{ id: "m1", role: "user", content: "讲讲连接" }]);
+		const res = await GET(new Request("http://x/api"), { params: Promise.resolve({ id: chat.id }) });
+		const disposition = res.headers.get("content-disposition") ?? "";
+		assert.ok(disposition.includes(`filename*=UTF-8''${encodeURIComponent("关系数据库：连接与范式.md").replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)}`), "the title names the file");
+		assert.ok(!disposition.includes('filename="session.md"') || disposition.includes("filename*=UTF-8''"), "the fallback alone is not the answer");
 	});
 
 	it("an empty session exports the bare header document", async () => {

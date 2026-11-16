@@ -18,6 +18,7 @@ import {
 	sanitizeThemeFile,
 	THEME_COLOR_KEYS,
 	themeIdFromName,
+	themeIdFor,
 	themeVars,
 	type Theme,
 } from "../src/core/index.ts";
@@ -34,10 +35,10 @@ describe("theme files — the import validator", () => {
 	it("names the first bad field", () => {
 		const { error: _drop, ...noError } = validFile.colors;
 		const cases: Array<[unknown, RegExp]> = [
-			[[1], /JSON object/],
-			[{ ...validFile, name: "  " }, /name/],
+			[[1], /JSON 对象/],
+			[{ ...validFile, name: "  " }, /名称/],
 			[{ ...validFile, mode: "sepia" }, /mode/],
-			[{ ...validFile, colors: "red" }, /colors must be an object/],
+			[{ ...validFile, colors: "red" }, /colors 必须是对象/],
 			[{ ...validFile, colors: noError }, /colors\.error/],
 			[{ ...validFile, colors: { ...validFile.colors, text: "white" } }, /colors\.text/],
 		];
@@ -46,6 +47,15 @@ describe("theme files — the import validator", () => {
 			assert.equal(parsed.ok, false, JSON.stringify(raw));
 			assert.match(!parsed.ok ? parsed.error : "", message);
 		}
+	});
+
+
+	it("a name with no ASCII letters or digits takes a stable hashed id", () => {
+		const id = themeIdFor("夜色");
+		assert.match(id, /^theme-[0-9a-f]{8}$/);
+		assert.equal(themeIdFor("夜色"), id, "same name, same id");
+		assert.notEqual(themeIdFor("晨雾"), id, "different names stay distinct");
+		assert.equal(themeIdFor("Night Owl"), "night-owl", "ASCII names keep the plain slug");
 	});
 
 	it("ids are name slugs, accents folded", () => {

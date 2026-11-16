@@ -93,7 +93,7 @@ export function NativeSubscriptionUIProvider({ children }: { children: React.Rea
 				{dialog === "github-copilot" && <p className="mt-3 text-xs leading-relaxed text-muted-foreground" data-testid="copilot-policy-notice">{COPILOT_POLICY_NOTICE}</p>}
 			</> : <>
 				<div className="mt-4 flex items-center gap-3 text-xs text-foreground">
-					<Toggle label="允许后台使用" checked={management ? status.allowBackgroundUse : background} disabled={busy || !!operation || status.pending || !status.available} onChange={(enabled) => { setBackground(enabled); if (management && bridge) void control(() => bridge.consent(dialog, enabled)); else setBackgroundDirty(true); }} />
+					<Toggle label="允许后台使用" testid="toggle-allow-background-use" checked={management ? status.allowBackgroundUse : background} disabled={busy || !!operation || status.pending || !status.available} onChange={(enabled) => { setBackground(enabled); if (management && bridge) void control(() => bridge.consent(dialog, enabled)); else setBackgroundDirty(true); }} />
 					<span>允许后台使用<span className="mt-1 block leading-relaxed text-muted-foreground">{SUBSCRIPTION_BACKGROUND_HINT}</span></span>
 				</div>
 				{!status.available && <p className="mt-3 text-xs text-muted-foreground">订阅登录需要桌面应用的私有服务器连接。API 密钥连接在此处仍可使用。</p>}

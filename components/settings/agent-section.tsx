@@ -566,6 +566,7 @@ export function AgentSection({
 							checked={info.enabled}
 							disabled={!fileExists}
 							label={`提示词 ${info.path}`}
+							testid={`toggle-prompt-${info.path.replace(/[^a-z0-9]+/gi, "-")}`}
 							onChange={(on) => onSectionChange(composePromptSwitch(agent, info.path, on))}
 						/>
 					</span>
@@ -848,6 +849,7 @@ export function AgentSection({
 								checked={agent?.graphTools?.enabled ?? true}
 								disabled={!graphOn}
 								label="启用图谱工具"
+								testid="toggle-graph-tools"
 								onChange={(on) => onSectionChange(composeGraphTools(agent, on))}
 							/>
 						</SettingsRow>
@@ -926,7 +928,7 @@ export function AgentSection({
 									: "已限制：不允许任何文件夹。添加文件夹后才能访问。"}>
 								<div className="flex items-center gap-2 text-xs">
 									<span>仅允许列出的文件夹</span>
-									<Toggle checked={restricted} label="仅允许列出的文件夹" onChange={(on) => onSectionChange(composeFileRestriction(effectiveAgent, on))} />
+									<Toggle checked={restricted} label="仅允许列出的文件夹" testid="toggle-restrict-to-listed-folders" onChange={(on) => onSectionChange(composeFileRestriction(effectiveAgent, on))} />
 								</div>
 							</SettingsRow>
 							{fileAccessError && <p role="alert" data-testid="file-access-config-error" className="text-xs text-error">{fileAccessError}</p>}

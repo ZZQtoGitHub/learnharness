@@ -24,7 +24,7 @@ it("one appendable queue stays three-wide across same-tick selections, refilling
 	assert.equal(queue.getSnapshot().completion, 0);
 	calls[0]!.resolve([success("a.md")]); await tick();
 	assert.equal(queue.getSnapshot().importing, false); assert.equal(queue.getSnapshot().completion, 1);
-	assert.deepEqual(queue.getSnapshot().errors, ["c.md: lost response"]);
+	assert.deepEqual(queue.getSnapshot().errors, ["c.md：lost response"]);
 	assert.equal(calls.length, 6, "no automatic retry");
 });
 
@@ -37,8 +37,8 @@ it("errors/notices keep selection order across appends even when requests settle
 	pending[1]!([{ requestIndex: 0, filePath: "B/same.md", ok: false, outcome: "partial", error: "second" }]);
 	pending[0]!([{ requestIndex: 0, filePath: "A/same.md", ok: false, outcome: "busy", error: "first" }]);
 	await tick();
-	assert.deepEqual(queue.getSnapshot().errors, ["A/same.md: first", "B/same.md: second"]);
-	assert.deepEqual(queue.getSnapshot().notices, ["B/c.pdf: Scanner caveat"]);
+	assert.deepEqual(queue.getSnapshot().errors, ["A/same.md：first", "B/same.md：second"]);
+	assert.deepEqual(queue.getSnapshot().notices, ["B/c.pdf：Scanner caveat"]);
 });
 
 it("unsupported-only directories are never sent; picker .DS_Store is ignored and eligible siblings proceed", async () => {
@@ -47,7 +47,7 @@ it("unsupported-only directories are never sent; picker .DS_Store is ignored and
 	queue.append([file(".DS_Store", "Root/.DS_Store"), file("a.png", "Root/Images/a.png"), file("notes.md", "Root/Sub/notes.md"), file("bad.pptx", "../bad.pptx")]);
 	await tick();
 	assert.deepEqual(paths, ["Root/Sub/notes.md"]);
-	assert.deepEqual(queue.getSnapshot().errors, ["Skipped 1 file that isn't text, Markdown, or PDF (.png).", "Skipped 1 file with a name the import can't use (e.g. a ':' in the name)."]);
+	assert.deepEqual(queue.getSnapshot().errors, ["已跳过 1 个文件（仅支持文本、Markdown 或 PDF，不支持：.png）。", "已跳过 1 个文件名无法用于导入的文件（例如名称中含“：”）。"]);
 });
 
 it("folder picks skip dot-directories such as .obsidian/ silently, even when the chosen root itself is hidden", async () => {
@@ -82,7 +82,7 @@ it("individual file picks still import hidden notes and report unsupported dotfi
 	queue.append([file(".draft.md"), file(".summary.txt"), file(".DS_Store")]);
 	await tick();
 	assert.deepEqual(paths, [".draft.md", ".summary.txt"]);
-	assert.deepEqual(queue.getSnapshot().errors, ["Skipped 1 file that isn't text, Markdown, or PDF (no extension)."]);
+	assert.deepEqual(queue.getSnapshot().errors, ["已跳过 1 个文件（仅支持文本、Markdown 或 PDF，不支持：无扩展名）。"]);
 });
 
 it("the queue uploads every accepted extension, including the expanded text types in uppercase", async () => {
@@ -99,7 +99,7 @@ it("the file type check comes before the size check", () => {
 	const queue = createNotesImportQueue(async ([f]) => [success(f!.name)]);
 	const huge = file("huge.docx"); Object.defineProperty(huge, "size", { value: Number.MAX_SAFE_INTEGER });
 	queue.append([huge]);
-	assert.deepEqual(queue.getSnapshot().errors, ["Skipped 1 file that isn't text, Markdown, or PDF (.docx)."]);
+	assert.deepEqual(queue.getSnapshot().errors, ["已跳过 1 个文件（仅支持文本、Markdown 或 PDF，不支持：.docx）。"]);
 });
 
 it("a folder pick of unsupported files gives one summary line with the count and each distinct type once, in first-seen order", async () => {
@@ -117,19 +117,19 @@ it("a folder pick of unsupported files gives one summary line with the count and
 	]);
 	await tick();
 	assert.deepEqual(paths, ["Course/notes.md"]);
-	assert.deepEqual(queue.getSnapshot().errors, ["Skipped 7 files that aren't text, Markdown, or PDF (.java, .class, .ppt, .pptx, .doc)."]);
+	assert.deepEqual(queue.getSnapshot().errors, ["已跳过 7 个文件（仅支持文本、Markdown 或 PDF，不支持：.java、.class、.ppt、.pptx、.doc）。"]);
 });
 
 it("one unsupported file uses the singular line; a file with no extension is listed as no extension", () => {
 	const single = createNotesImportQueue(async ([f]) => [success(f!.name)]);
 	single.append([file("deck.pptx")]);
-	assert.deepEqual(single.getSnapshot().errors, ["Skipped 1 file that isn't text, Markdown, or PDF (.pptx)."]);
+	assert.deepEqual(single.getSnapshot().errors, ["已跳过 1 个文件（仅支持文本、Markdown 或 PDF，不支持：.pptx）。"]);
 	const mixed = createNotesImportQueue(async ([f]) => [success(f!.name)]);
 	mixed.append([file("Main.java", "Course/Main.java"), file("Makefile", "Course/Makefile")]);
-	assert.deepEqual(mixed.getSnapshot().errors, ["Skipped 2 files that aren't text, Markdown, or PDF (.java, no extension)."]);
+	assert.deepEqual(mixed.getSnapshot().errors, ["已跳过 2 个文件（仅支持文本、Markdown 或 PDF，不支持：.java、无扩展名）。"]);
 	const trailingDot = createNotesImportQueue(async ([f]) => [success(f!.name)]);
 	trailingDot.append([file("notes.")]);
-	assert.deepEqual(trailingDot.getSnapshot().errors, ["Skipped 1 file that isn't text, Markdown, or PDF (no extension)."]);
+	assert.deepEqual(trailingDot.getSnapshot().errors, ["已跳过 1 个文件（仅支持文本、Markdown 或 PDF，不支持：无扩展名）。"]);
 });
 
 it("names the import can't use are counted into one line, and path safety is checked before type", async () => {
@@ -138,10 +138,10 @@ it("names the import can't use are counted into one line, and path safety is che
 	queue.append([file("https:::eclass.yorku.ca:pluginfile.php:7873036:mod_resource:content:2:W5.txt.pdf", "Course/https:::eclass.yorku.ca:pluginfile.php:7873036:mod_resource:content:2:W5.txt.pdf"), file("a:b.pptx", "Course/a:b.pptx"), file("notes.md", "Course/notes.md")]);
 	await tick();
 	assert.deepEqual(paths, ["Course/notes.md"]);
-	assert.deepEqual(queue.getSnapshot().errors, ["Skipped 2 files with names the import can't use (e.g. a ':' in the name)."]);
+	assert.deepEqual(queue.getSnapshot().errors, ["已跳过 2 个文件名无法用于导入的文件（例如名称中含“：”）。"]);
 	const single = createNotesImportQueue(async ([f]) => [success(f!.name)]);
 	single.append([file("a:b.md")]);
-	assert.deepEqual(single.getSnapshot().errors, ["Skipped 1 file with a name the import can't use (e.g. a ':' in the name)."]);
+	assert.deepEqual(single.getSnapshot().errors, ["已跳过 1 个文件名无法用于导入的文件（例如名称中含“：”）。"]);
 });
 
 it("in one pick the too-big file keeps its own line, hidden files stay silent, supported files upload, and each summary sits at its first file", async () => {
@@ -161,9 +161,9 @@ it("in one pick the too-big file keeps its own line, hidden files stay silent, s
 	await tick();
 	assert.deepEqual(paths, ["Course/notes.md", "Course/slides.pdf"]);
 	assert.deepEqual(queue.getSnapshot().errors, [
-		"Skipped 2 files that aren't text, Markdown, or PDF (.java, .class).",
-		"Course/big.md: Too big. Max 25 MB.",
-		"Skipped 2 files with names the import can't use (e.g. a ':' in the name).",
+		"已跳过 2 个文件（仅支持文本、Markdown 或 PDF，不支持：.java、.class）。",
+		"Course/big.md：文件过大，最大 25 MB。",
+		"已跳过 2 个文件名无法用于导入的文件（例如名称中含“：”）。",
 	]);
 });
 
@@ -172,7 +172,7 @@ it("each pick gets its own summary lines, so a later pick during an import adds 
 	const queue = createNotesImportQueue(() => new Promise((done) => { resolve = done; }));
 	queue.append([file("notes.md"), file("a.ppt")]);
 	queue.append([file("b.doc"), file("c.doc")]);
-	assert.deepEqual(queue.getSnapshot().errors, ["Skipped 1 file that isn't text, Markdown, or PDF (.ppt).", "Skipped 2 files that aren't text, Markdown, or PDF (.doc)."]);
+	assert.deepEqual(queue.getSnapshot().errors, ["已跳过 1 个文件（仅支持文本、Markdown 或 PDF，不支持：.ppt）。", "已跳过 2 个文件（仅支持文本、Markdown 或 PDF，不支持：.doc）。"]);
 	resolve([success("notes.md")]);
 	await tick();
 	assert.equal(queue.getSnapshot().importing, false);

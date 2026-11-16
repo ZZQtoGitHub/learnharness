@@ -126,6 +126,9 @@ export async function runSubmitAgent<T>(opts: {
 					message.content.filter((c) => c.type === "toolCall").map((c) => (c as { name: string }).name).join(", ") || "(none)",
 				),
 			shouldStop: (_message, toolResults) => toolResults.some((r) => r.toolName === opts.toolName && !r.isError),
+			// Machine-facing prompts stay verbatim (zh-CN seam): the submit
+			// agents answer with a tool call, not learner prose.
+			localizePrompt: false,
 		},
 	);
 	void result;

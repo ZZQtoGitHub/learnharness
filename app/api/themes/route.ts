@@ -9,7 +9,7 @@
  *          -2, -3, …), the file lands at <id>.json → 201 { theme }.
  */
 
-import { BUILTIN_THEMES, isBuiltinThemeId, isThemeId, parseThemeFile, themeIdFromName } from "@/src/core";
+import { BUILTIN_THEMES, isBuiltinThemeId, isThemeId, parseThemeFile, themeIdFor } from "@/src/core";
 import { themeStore } from "@/src/server";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 	if (body === undefined) return Response.json({ error: "请求体必须是 JSON" }, { status: 400 });
 	const parsed = parseThemeFile(body);
 	if (!parsed.ok) return Response.json({ error: parsed.error }, { status: 400 });
-	const base = themeIdFromName(parsed.theme.name);
+	const base = themeIdFor(parsed.theme.name);
 	const taken = (id: string) => isBuiltinThemeId(id) || themeStore.readTheme(id) !== null;
 	let id = base;
 	for (let n = 2; taken(id); n++) {

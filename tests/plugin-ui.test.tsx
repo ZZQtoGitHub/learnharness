@@ -313,7 +313,7 @@ describe("controlled plugin UI", () => {
 			const dialog = document.querySelector('[role="dialog"]')!;
 			const frame = document.querySelector<HTMLElement>("[data-plugin-ui-dialog]")!;
 			const scroller = frame.querySelector<HTMLElement>("[data-plugin-ui-dialog-scroll]")!;
-			const close = frame.querySelector<HTMLElement>('button[aria-label="Close dialog"]')!;
+			const close = frame.querySelector<HTMLElement>('button[aria-label="关闭对话框"]')!;
 			assert.equal(dialog.getAttribute("aria-label"), "Accessible dialog name");
 			assert.deepEqual([...frame.querySelectorAll("h2")].map(heading => heading.textContent), ["Plugin-owned heading"]);
 			assert.equal(document.activeElement, frame.querySelector("h2"), "plugin heading remains the initial-focus fallback");
@@ -412,7 +412,7 @@ describe("controlled plugin UI", () => {
 	it("neutral composer reuses core renderer without file routing or practice affordances", () => {
 		const html = renderToStaticMarkup(<PluginComposer value="" onChange={() => {}} onSend={() => {}} />);
 		assert.match(html, /data-testid="composer"/);
-		assert.match(html, /Message…/);
+		assert.match(html, /输入消息…/);
 		assert.doesNotMatch(html, /data-file-path-input|data-file-path-default|Next problem|Ask, answer|Usage/);
 	});
 
@@ -442,7 +442,7 @@ describe("controlled plugin UI", () => {
 		for (const selector of ["[data-testid=plugin-dictation-control]", "[data-plugin-model-picker]", "[data-plugin-thinking-picker]"]) assert.ok(controls.querySelector(selector), selector);
 		for (const token of ["font-ui", "text-xs", "text-muted-foreground", "pt-2"]) assert.ok(controls.classList.contains(token), token);
 		assert.equal(controls.querySelector('[data-testid="composer"]'), null);
-		assert.ok(document.querySelector('button[aria-label="Send"]')!.hasAttribute("disabled"));
+		assert.ok(document.querySelector('button[aria-label="发送"]')!.hasAttribute("disabled"));
 		assert.doesNotMatch(html, /data-file-path-input|data-file-path-default|Next problem|Usage/);
 	});
 

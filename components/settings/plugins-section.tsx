@@ -59,7 +59,7 @@ function PluginRow({ plugin, onSettings }: { plugin: FrontendPlugin; onSettings:
 				{info.enabled && <button type="button" aria-label={`“${name}”的设置`} title={`“${name}”的设置`}
 					className="flex size-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
 					onClick={onSettings}><Settings className="size-3.5" aria-hidden="true" /></button>}
-				<Toggle label={`启用 ${name}`} checked={info.enabled} disabled={!manager || plugin.busy || snapshot.refreshing || (!info.manifest && !info.enabled)} onChange={enabled => void manager?.setEnabled(info.id, enabled)} />
+				<Toggle label={`启用 ${name}`} testid={`toggle-enable-${info.id}`} checked={info.enabled} disabled={!manager || plugin.busy || snapshot.refreshing || (!info.manifest && !info.enabled)} onChange={enabled => void manager?.setEnabled(info.id, enabled)} />
 			</div>
 		</SettingsRow>
 		{info.manifest?.description && <p className="mt-1 font-prose text-sm text-muted-foreground">{info.manifest.description}</p>}

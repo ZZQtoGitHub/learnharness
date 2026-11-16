@@ -86,18 +86,19 @@ function isHex(value: unknown): value is string {
 /** Validate an imported theme: `{ ok: false, error }` names the first bad
  *  field so the import card can say what is wrong. Unknown keys drop. */
 export function parseThemeFile(raw: unknown): { ok: true; theme: ThemeFile } | { ok: false, error: string } {
-	if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, error: "theme must be a JSON object" };
+	if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, error: "主题必须是一个 JSON 对象" };
 	const r = raw as Record<string, unknown>;
-	if (typeof r.name !== "string" || !r.name.trim()) return { ok: false, error: "name must be a non-empty string" };
-	if (!themeIdFromName(r.name)) return { ok: false, error: "name must contain a letter or digit" };
-	if (r.mode !== "dark" && r.mode !== "light") return { ok: false, error: 'mode must be "dark" or "light"' };
+	if (typeof r.name !== "string" || !r.name.trim()) return { ok: false, error: "名称必须是非空字符串" };
+	// Any non-empty name is legal: names without ASCII letters or digits
+	// (e.g. 简体中文) take a hashed id from themeIdFor instead of a slug.
+	if (r.mode !== "dark" && r.mode !== "light") return { ok: false, error: 'mode 必须是 "dark" 或 "light"' };
 	if (!r.colors || typeof r.colors !== "object" || Array.isArray(r.colors)) {
 		return { ok: false, error: "colors 必须是对象" };
 	}
 	const c = r.colors as Record<string, unknown>;
 	const colors = {} as ThemeColors;
 	for (const key of THEME_COLOR_KEYS) {
-		if (!isHex(c[key])) return { ok: false, error: `colors.${key} must be a #hex color` };
+		if (!isHex(c[key])) return { ok: false, error: `colors.${key} 必须是 #hex 颜色` };
 		colors[key] = c[key];
 	}
 	return { ok: true, theme: { name: r.name.trim(), mode: r.mode, colors } };
@@ -118,6 +119,31 @@ export function themeIdFromName(name: string): string {
 		.replace(/[^a-z0-9]+/g, "-")
 		.slice(0, 64)
 		.replace(/^-+|-+$/g, "");
+}
+
+/** FNV-1a over code points, 8 hex digits. Deterministic and browser-safe
+ *  (no node:crypto in the client graph). */
+function nameHash(name: string): string {
+	let hash = 0x811c9dc5;
+	for (const char of name) {
+		hash ^= char.codePointAt(0) ?? 0;
+		hash = Math.imul(hash, 0x01000193) >>> 0;
+	}
+	return hash.toString(16).padStart(8, "0");
+}
+
+/** The id a name is stored under: its slug, or a hash of the name when the
+ *  name carries no ASCII letter or digit (简体中文 names, symbols).
+ *
+ *  Theme ids are FILE NAMES behind the store's traversal guard, so they stay
+ *  in the slug grammar — a Han id would be a path segment the guard cannot
+ *  reason about, and a filename Windows cannot always hold. The human name
+ *  is stored inside the file and is what every surface displays; the id only
+ *  has to be stable and unique, which the name hash guarantees. */
+export function themeIdFor(name: string): string {
+	const slug = themeIdFromName(name);
+	if (slug) return slug;
+	return `theme-${nameHash(name.normalize("NFC"))}`;
 }
 
 /** Valid theme ids: the slug grammar themeIdFromName produces. */

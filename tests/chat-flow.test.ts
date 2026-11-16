@@ -932,7 +932,7 @@ describe("canonical persistence failures", () => {
 				});
 				return agent;
 			});
-			assert.equal(eventsOf(body).find(e => e.type === "error")?.errorText, "An error occurred.");
+			assert.equal(eventsOf(body).find(e => e.type === "error")?.errorText, "出错了。");
 			assert.ok(chatStore.getChat(chat.id)!.messages.some(m => m.id === steer.id), "the steer was saved before bookkeeping failed");
 			const delivered: LhMessage[] = [];
 			const next = { steer: (message: LhMessage) => delivered.push(message), state: { model: { provider: "faux" } } } as unknown as Parameters<typeof registerLiveAgent>[1];
