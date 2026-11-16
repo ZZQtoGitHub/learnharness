@@ -29,7 +29,7 @@ test("actual select → submit → saved result → historical Why uses source d
 		assert.ok(choice);
 		await act(async () => choice.click());
 		assert.equal(choice.getAttribute("aria-checked"), "true");
-		const submit = [...host.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent?.includes("Submit answer"))!;
+		const submit = [...host.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent?.includes("提交答案"))!;
 		assert.equal(submit.disabled, false);
 		// linkedom does not implement the browser's default button→form
 		// action; dispatch its native submit event through React instead.
@@ -45,11 +45,11 @@ test("actual select → submit → saved result → historical Why uses source d
 		assert.equal(persisted.details.explanation, explanation);
 		const saved = structuredClone(persisted.details);
 		await act(async () => root.render(<AnsweredCard answer={persisted.details} input={input} />));
-		const why = [...host.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent === "Why")!;
+		const why = [...host.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent === "为什么")!;
 		await act(async () => why.click());
 		assert.equal(host.querySelectorAll("mtr").length, 4, "question and revealed explanation retain their rows");
 		const paragraphs = host.querySelectorAll('[data-testid="tucked-explanation"] p');
-		assert.equal(paragraphs.length, 2, "recovered paragraphs remain distinct in Why");
+		assert.equal(paragraphs.length, 2, "recovered paragraphs remain distinct in 为什么");
 		assert.ok(paragraphs[0]!.parentElement!.classList.contains("[&>p:first-child]:inline"));
 		assert.ok(!paragraphs[0]!.parentElement!.classList.contains("[&_p]:inline"));
 		const annotations = [...host.querySelectorAll('annotation[encoding="application/x-tex"]')].map(n => n.textContent);
