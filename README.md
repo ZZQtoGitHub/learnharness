@@ -6,6 +6,10 @@
   </picture>
 </p>
 
+<p align="center">
+  <strong>English</strong> · <a href="README.zh-CN.md">简体中文</a>
+</p>
+
 <p align="center"><strong>An agent harness for learning.</strong></p>
 
 <p align="center">
