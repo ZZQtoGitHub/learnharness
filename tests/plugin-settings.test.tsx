@@ -34,13 +34,13 @@ it("dedicated plugin settings pages cover schema/custom/empty/loading/error, dee
 	const loading = new Promise<void>(() => {});
 	const modules: Record<string, PluginFrontendModule> = {
 		schema: { activate(ctx) { ctx.registerSettings({ rows: [
-			{ key: "feature", label: "Feature enabled", type: "toggle", value: false, async onChange(value) { changes.push(value); } },
+			{ key: "feature", label: "功能已启用", type: "toggle", value: false, async onChange(value) { changes.push(value); } },
 			{ key: "validated", label: "Validated preference", type: "toggle", value: false, validate: () => "Preference is invalid", onChange() { assert.fail("invalid values must not persist"); } },
 			{ key: "failing", label: "Failing preference", type: "toggle", value: false, async onChange() { throw new Error("Plugin save failed"); } },
 		] }); } },
-		custom: { activate(ctx) { ctx.registerSettings(container => { customMounts++; container.textContent = "Custom preferences"; return () => { customCleanups++; }; }); } },
+		custom: { activate(ctx) { ctx.registerSettings(container => { customMounts++; container.textContent = "自定义偏好设置"; return () => { customCleanups++; }; }); } },
 		loading: { activate: () => loading },
-		broken: { activate() { throw new Error("Fixture activation failed"); } },
+		broken: { activate() { throw new Error("Fixture 激活失败"); } },
 	};
 	const owner = createPluginWindowOwner({
 		fetch: async () => Response.json({ plugins: [info("schema"), info("custom"), info("backend"), info("loading"), info("broken"), info("disabled", false)], directory: "/fixtures/plugins", conflicts: [{ id: "schema", error: "Community schema skipped: reserved Core plugin ID" }] }),
@@ -60,9 +60,9 @@ it("dedicated plugin settings pages cover schema/custom/empty/loading/error, dee
 	const page = () => document.querySelector('[data-testid="settings-content"]');
 	try {
 		await act(async () => { root.render(shell(<SettingsDialogBody initialSection="plugin:schema" onClose={() => {}} />)); });
-		assert.ok(page()?.textContent?.includes("Feature enabled"), "deep link renders while core settings are pending");
+		assert.ok(page()?.textContent?.includes("功能已启用"), "deep link renders while core settings are pending");
 		const nav = document.querySelector('[data-testid="settings-nav"]')!;
-		assert.deepEqual([...nav.querySelectorAll("button")].map(button => button.textContent), ["Providers", "Agent", "Appearance", "Graph", "Keyboard", "General", "Core plugins", "Community plugins", "Plugin schema", "Plugin custom", "Plugin backend", "Plugin loading", "Plugin broken"]);
+		assert.deepEqual([...nav.querySelectorAll("button")].map(button => button.textContent), ["服务商", "智能体", "外观", "图谱", "快捷键", "通用", "核心插件", "社区插件", "Plugin schema", "Plugin custom", "Plugin backend", "Plugin loading", "Plugin broken"]);
 		assert.equal(nav.querySelectorAll("svg").length, 8, "only built-in navigation entries receive icons");
 		for (const button of nav.querySelectorAll("button")) {
 			if (button.getAttribute("data-testid")?.startsWith("settings-nav-plugin:")) {
@@ -87,16 +87,16 @@ it("dedicated plugin settings pages cover schema/custom/empty/loading/error, dee
 		assert.ok(page()?.querySelector('[data-plugin-setting="failing"] [role="alert"]')?.textContent?.includes("Plugin save failed"));
 		assert.deepEqual(coreRequests, ["/api/settings"], "schema changes do not write core settings");
 		await act(async () => { rejectCore(new Error("Core settings unavailable")); });
-		assert.ok(page()?.textContent?.includes("Feature enabled"), "core fetch error does not gate plugin page");
+		assert.ok(page()?.textContent?.includes("功能已启用"), "core fetch error does not gate plugin page");
 		await click('[data-testid="settings-nav-plugin:custom"]');
-		assert.equal(customMounts, 1); assert.ok(page()?.textContent?.includes("Custom preferences"));
+		assert.equal(customMounts, 1); assert.ok(page()?.textContent?.includes("自定义偏好设置"));
 		await click('[data-testid="settings-nav-plugin:backend"]');
 		assert.equal(customCleanups, 1, "switching settings page tears down custom mount");
-		assert.ok(page()?.textContent?.includes("No settings available."));
+		assert.ok(page()?.textContent?.includes("没有可用的设置。"));
 		await click('[data-testid="settings-nav-plugin:loading"]');
-		assert.ok(page()?.textContent?.includes("Loading plugin settings…"));
+		assert.ok(page()?.textContent?.includes("加载插件设置…"));
 		await click('[data-testid="settings-nav-plugin:broken"]');
-		assert.ok(page()?.querySelector('[role="alert"]')?.textContent?.includes("Fixture activation failed"));
+		assert.ok(page()?.querySelector('[role="alert"]')?.textContent?.includes("Fixture 激活失败"));
 		await click('[data-testid="settings-nav-plugin:custom"]');
 		await act(async () => { owner.manager.reconcile([info("schema"), info("backend")]); });
 		assert.equal(customCleanups, 2);

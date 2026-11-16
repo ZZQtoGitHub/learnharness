@@ -249,7 +249,7 @@ test("native row displays standalone metadata, has no session link, and END uses
 		await act(async () => { detail.dispatchEvent(new window.Event("click", { bubbles: true })); });
 		assert.equal(document.querySelector("a[href^='/chat/']"), null);
 		assert.match(document.body.textContent!, /offline-fixture:held/);
-		assert.match(document.body.textContent!, /Context—/);
+		assert.match(document.body.textContent!, /后台智能体—/);
 		await act(async () => { document.querySelector("[data-testid='activity-abort']")!.dispatchEvent(new window.Event("click", { bubbles: true })); });
 		assert.deepEqual(calls, [{ url: "/api/activity/abort", body: { kind: "plugin-worker", id: `view-fixture:${task.id}` } }]);
 	} finally {
