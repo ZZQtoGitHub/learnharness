@@ -37,6 +37,7 @@ process.env.LH_DATA_DIR = TMP_DATA;
 
 const { PROMPTS_OVERRIDE_DIR } = await import("../config.ts");
 const teacherAgent = await import("../src/agent/teacher-agent.ts");
+const { LANGUAGE_DIRECTIVE } = await import("../src/agent/language.ts");
 const { allSegmentPaths, effectivePromptSegments } = await import("../src/agent/prompt-segments.ts");
 const { isValidSegmentPath } = await import("../src/core/prompt-segments.ts");
 const { promptOverrides } = await import("../src/store/prompt-overrides.ts");
@@ -269,8 +270,10 @@ describe("composeInstructions: override honoring + the byte-identical source pat
 				...fragmentsOf("src/agent/prompts/shared"),
 			].join("\n\n---\n\n");
 		};
-		assert.equal(composeInstructions("teacher"), oldLoader("teacher"));
-		assert.equal(composeInstructions("prober"), oldLoader("prober"));
+		// zh-CN seam: composition appends the language directive last
+		// (src/agent/language.ts), the fragments above stay verbatim.
+		assert.equal(composeInstructions("teacher"), `${oldLoader("teacher")}\n\n${LANGUAGE_DIRECTIVE}`);
+		assert.equal(composeInstructions("prober"), `${oldLoader("prober")}\n\n${LANGUAGE_DIRECTIVE}`);
 	});
 
 	it("an enabled override swaps in; switch off or file absent composes source", () => {
@@ -444,7 +447,7 @@ describe("Practice settings API and effective prompt loading", () => {
 				const row = view.practice.find((s: { path: string }) => s.path === segment);
 				assert.equal(row.enabled, on);
 				assert.equal(row.overrideText, text);
-				const expected = effectivePromptSegments("practice", {}).map((s) => (on && s.path === segment ? text : s.sourceText).trim()).filter(Boolean).join("\n\n---\n\n");
+				const expected = `${effectivePromptSegments("practice", {}).map((s) => (on && s.path === segment ? text : s.sourceText).trim()).filter(Boolean).join("\n\n---\n\n")}\n\n${LANGUAGE_DIRECTIVE}`;
 				assert.equal(loaded(), expected, "actual composed instructions replace exactly one source fragment");
 				for (const kind of ["teacher", "prober"] as const) {
 					assert.equal(teacherAgent.composeInstructions(kind, readSettingsRecord()?.agent?.prompts ?? {}), defaults[kind]);
