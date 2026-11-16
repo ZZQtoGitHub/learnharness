@@ -53,7 +53,7 @@ export function NodePickerControl({ count, onOpen, onClear, disabled, triggerRef
 					onClick={onClear}
 					className="cursor-pointer rounded-full px-2 py-1 font-ui text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
 				>
-					Clear
+					清空
 				</button>
 			)}
 		</div>

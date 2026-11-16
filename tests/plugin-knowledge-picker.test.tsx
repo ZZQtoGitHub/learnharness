@@ -254,7 +254,7 @@ it("StrictMode Activity hide releases picker ownership and show preserves drafts
 		await f.setHidden(false);
 		assert.equal(f.target.querySelector('[data-testid="practice-props-chip"]') === trigger, true, "Activity preserves the controlled widget DOM");
 		assert.equal(owner.owns(), false); assert.equal(overlay(), null, "reconnection is not permission to reopen a logically closed picker");
-		assert.match(f.target.textContent!, /1 node selected/);
+		assert.match(f.target.textContent!, /1 个节点已选中/);
 		const reserves: ReturnType<typeof f.controller.reserveOpening>[] = [];
 		const reserve = f.controller.reserveOpening;
 		f.controller.reserveOpening = (...args) => { const result = reserve(...args); reserves.push(result); return result; };
@@ -305,7 +305,7 @@ it("lazily loads the real Chains interface as one nonmodal main-pane view, prese
 	const f = await fixture();
 	try {
 		assert.equal(f.requests.length, 0);
-		assert.equal(f.target.querySelector('[data-testid="practice-props-chip"]')?.textContent, "Pick nodes");
+		assert.equal(f.target.querySelector('[data-testid="practice-props-chip"]')?.textContent, "选择节点");
 		await click(f, "practice-props-chip");
 		assert.deepEqual(f.requests.map((r) => r.url), ["/api/graph", "/api/graph/sources"]);
 		const pane = overlay()!.closest<HTMLElement>('[data-plugin-knowledge-picker-pane]'); assert.ok(pane);
@@ -325,7 +325,7 @@ it("lazily loads the real Chains interface as one nonmodal main-pane view, prese
 		assert.equal(overlay()!.querySelector('[aria-label="打开侧边栏"]'), null);
 		assert.ok(overlay()!.querySelector('header.lh-native-window-clearance'));
 		assert.ok(overlay()!.querySelector('[data-testid="add-source-folder"]'));
-		assert.ok(overlay()!.querySelector('button[title="Rename"]'));
+		assert.ok(overlay()!.querySelector('button[title="重命名"]'));
 		assert.equal(overlay()!.querySelector("[data-source-drag-row]")?.getAttribute("draggable"), "true");
 		assert.equal(document.querySelector('[data-testid="chain-delete"]'), null);
 	} finally { await f.dispose(); }
@@ -340,14 +340,14 @@ it("actual checkbox changes emit immediately; controlled updates, Done/X/Escape 
 		assert.deepEqual(f.calls, [["a", "b"]]);
 		assert.equal(f.target.textContent?.includes("nodes selected"), false, "selection remains caller-controlled");
 		await act(async () => { f.handle.update({ value: ["a", "b", "a"] }); });
-		assert.match(f.target.textContent!, /2 nodes selected/);
+		assert.match(f.target.textContent!, /2 个节点已选中/);
 		for (const action of ["Done", "X", "Escape"]) {
 			if (action === "Done") await click(f, "chain-practice-done");
 			else if (action === "X") await click(f, "chain-table-close");
 			else await escape(f);
 			assert.equal(overlay(), null);
 			assert.equal(document.activeElement, f.target.querySelector('[data-testid="practice-props-chip"]'));
-			assert.match(f.target.textContent!, /2 nodes selected/);
+			assert.match(f.target.textContent!, /2 个节点已选中/);
 			await click(f, "practice-props-chip");
 			assert.equal((document.querySelector('[data-testid="cluster-checkbox-chat"]') as HTMLInputElement).checked, true);
 		}
@@ -410,7 +410,7 @@ it("disabled controls neither fetch nor clear and disabling an open picker close
 		const sourceSignal = f.requests.find((r) => r.url === "/api/graph/sources")!.init!.signal!;
 		await act(async () => { f.handle.update({ disabled: true }); });
 		assert.equal(overlay(), null); assert.equal(sourceSignal.aborted, true);
-		assert.match(f.target.textContent!, /1 node selected/);
+		assert.match(f.target.textContent!, /1 个节点已选中/);
 		await act(async () => { f.handle.update({ disabled: false }); });
 		assert.equal(overlay(), null, "reenabling never silently reopens");
 		await click(f, "practice-props-chip"); assert.ok(overlay());
@@ -476,7 +476,7 @@ it("an actual host menu takes Escape before the picker and preserves controlled 
 		assert.ok(document.querySelector("[data-lh-menu]"));
 		await escape(f);
 		assert.equal(document.querySelector("[data-lh-menu]"), null);
-		assert.ok(overlay()); assert.match(f.target.textContent!, /1 node selected/);
+		assert.ok(overlay()); assert.match(f.target.textContent!, /1 个节点已选中/);
 		await escape(f); assert.equal(overlay(), null); assert.deepEqual(f.calls, []);
 	} finally { await f.dispose(); }
 });
@@ -585,7 +585,7 @@ for (const action of ["Done", "X", "Escape"] as const) it(`a public dialog origi
 		assert.equal(origin.input.isConnected, true); assert.equal(origin.input.value, "edited parent draft");
 		assert.equal(parent.hasAttribute("inert"), false); assert.notEqual(parent.getAttribute("aria-hidden"), "true");
 		assert.equal(document.activeElement, origin.target.querySelector('[data-testid="practice-props-chip"]'));
-		assert.match(origin.target.textContent!, /1 node selected/); assert.equal(origin.selections.length, 0);
+		assert.match(origin.target.textContent!, /1 个节点已选中/); assert.equal(origin.selections.length, 0);
 	} finally { await f.dispose(); }
 });
 
@@ -698,7 +698,7 @@ for (const strict of [false, true]) for (const stale of ["response", "error"] as
 		});
 		assert.ok(overlay()); assert.deepEqual(f.errors, []);
 		await click(f, "chain-table-close"); assert.equal(overlay(), null);
-		assert.match(secondTarget.textContent!, /1 node selected/);
+		assert.match(secondTarget.textContent!, /1 个节点已选中/);
 		await act(async () => { second.dispose(); });
 	} finally { await f.dispose(); }
 });
@@ -714,7 +714,7 @@ for (const strict of [false, true]) it(`cached selectors replace the exact retir
 		await click(f, "practice-props-chip", secondTarget);
 		assert.equal(document.querySelectorAll('[data-testid="chain-table-overlay"]').length, 1);
 		assert.equal(f.controller.getSnapshot().filter(layer => layer.kind === "view").length, 1);
-		assert.match(f.target.textContent!, /1 node selected/); assert.match(secondTarget.textContent!, /1 node selected/);
+		assert.match(f.target.textContent!, /1 个节点已选中/); assert.match(secondTarget.textContent!, /1 个节点已选中/);
 		await act(async () => { f.handle.dispose(); }); assert.ok(overlay());
 		await click(f, "chain-table-close"); assert.equal(overlay(), null);
 		await click(f, "practice-props-chip", secondTarget); assert.ok(overlay());
@@ -800,7 +800,7 @@ it("route expiry closes an active pane picker without disposing its retained wid
 		const sourceRead = f.requests.find(request => request.url === "/api/graph/sources")!.init!.signal!;
 		await act(async () => { f.routeLifetime.abort(); });
 		assert.equal(overlay(), null); assert.equal(sourceRead.aborted, true);
-		assert.match(f.target.textContent!, /1 node selected/);
+		assert.match(f.target.textContent!, /1 个节点已选中/);
 		await click(f, "practice-props-chip");
 		assert.equal(overlay(), null); assert.equal(f.requests.length, 2, "expired source never falls back to a body modal");
 	} finally { await f.dispose(); }

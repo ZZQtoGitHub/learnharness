@@ -201,7 +201,7 @@ describe("the practice draft (?mode=practice, 2026-10-04)", () => {
 			/>,
 		);
 		assert.match(picked, /1 node selected/);
-		assert.match(picked, /Clear/);
+		assert.match(picked, /清空/);
 		// teach mode with nothing picked renders nothing (home's law)
 		const teach = renderToStaticMarkup(
 			<DraftShell busy={false} text="" onChange={() => {}} onSend={() => {}} mode="teach" />,
