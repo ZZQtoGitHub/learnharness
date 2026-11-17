@@ -74,7 +74,9 @@ it("dedicated plugin settings pages cover schema/custom/empty/loading/error, dee
 		await click('[data-testid="settings-nav-core-plugins"]');
 		const corePage = page()!.textContent!;
 		assert.ok(corePage.includes("Plugin schema"));
-		for (const absent of ["Plugin custom", "trusted local code", "Refresh plugins", "/fixtures/plugins", "1.0.0", "reserved Core plugin ID"]) assert.ok(!corePage.includes(absent), absent);
+		// Community-only chrome must not leak into the core page: the localized
+		// trust warning and refresh control are the two copy-dependent markers.
+		for (const absent of ["Plugin custom", "本地可信代码", "刷新插件", "/fixtures/plugins", "1.0.0", "reserved Core plugin ID"]) assert.ok(!corePage.includes(absent), absent);
 		await click('[data-testid="settings-nav-plugins"]');
 		assert.ok(page()!.textContent!.includes("Plugin custom")); assert.ok(!page()!.querySelector('[data-testid="plugin-schema"]'));
 		assert.ok(page()!.textContent!.includes("reserved Core plugin ID")); assert.ok(page()!.textContent!.includes("1.0.0"));

@@ -23,7 +23,7 @@ import { PLUGIN_KNOWLEDGE_FIXTURE as KNOWLEDGE, PLUGIN_PICKER_SETTINGS_FIXTURE a
 const PLUGIN = "/api/plugins/native-smoke";
 const VIEW = "/plugins/native-smoke/proof";
 const ROW = '[data-testid="plugin-native-smoke"]';
-const TOGGLE = `${ROW} [role="switch"][aria-label="Enable Runtime proof"]`;
+const TOGGLE = `${ROW} [role="switch"][aria-label="启用 Runtime proof"]`;
 const SIDEBAR_LINK = '[data-plugin-action="native-smoke/open-sidebar"]';
 const MOUNT = 'main div[aria-label="Runtime proof"]';
 const WORKER_ROW = '[data-testid="activity-blob-plugin-worker"]';
@@ -32,7 +32,7 @@ const KNOWLEDGE_OVERLAY = '[data-testid="chain-table-overlay"]';
 const KNOWLEDGE_CHIP = `${MOUNT} [data-testid="practice-props-chip"]`;
 const PICKER_DIALOG = '[role="dialog"][aria-label="Picker dialog proof"] [data-plugin-ui-dialog]';
 const PICKER_SETTINGS_ROW = `[data-testid="plugin-${PICKER_SETTINGS.id}"]`;
-const PICKER_SETTINGS_TOGGLE = `${PICKER_SETTINGS_ROW} [role="switch"][aria-label="Enable ${PICKER_SETTINGS.name}"]`;
+const PICKER_SETTINGS_TOGGLE = `${PICKER_SETTINGS_ROW} [role="switch"][aria-label="启用 ${PICKER_SETTINGS.name}"]`;
 
 async function chromeExecutable(supplied) {
 	const candidates = supplied ? [supplied] : [
@@ -588,9 +588,9 @@ export async function verifyPluginBrowser(url, options = {}) {
 		assert.equal(documentResponse?.status(), 200, "The caller's live app must serve its home screen");
 		await openPlugins();
 		const warning = await page.$eval('[data-testid="section-plugins"]', element => element.textContent);
-		for (const copy of ["trusted local code", "broad file and network access", "not sandboxed", "restarting LearnHarness", "disabled by default"]) assert.ok(warning.includes(copy), `Missing trust/default-state warning: ${copy}`);
+		for (const copy of ["本地可信代码", "可访问文件与网络", "不受沙箱限制", "重启 LearnHarness", "默认处于停用状态"]) assert.ok(warning.includes(copy), `Missing trust/default-state warning: ${copy}`);
 		assert.equal(await page.$eval(TOGGLE, element => element.getAttribute("aria-checked")), "false", "verifyPluginServer must leave the runtime fixture disabled");
-		assert.ok((await page.$eval(ROW, element => element.textContent)).includes("Disabled"), "Package row must show the disabled status");
+		assert.ok((await page.$eval(ROW, element => element.textContent)).includes("已停用"), "Package row must show the disabled status");
 		assert.equal(await page.$$eval(SIDEBAR_LINK, elements => elements.length), 0, "A disabled package must not expose a sidebar view");
 		await health();
 		evidence.assertions.push("Settings exposes the trust warning and disabled Runtime proof package");

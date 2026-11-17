@@ -33,7 +33,7 @@ export function PluginsSection({ onOpenSettings, origin = "community" }: { onOpe
 			<p className="text-xs text-muted-foreground">插件目录</p>
 			<div className="mt-1 flex items-center gap-3">
 				<code className="min-w-0 flex-1 break-all text-xs select-text">{snapshot.directory}</code>
-				<Button variant="outline" size="icon-sm" aria-label="刷新插件" title="刷新插件" aria-busy={snapshot.refreshing}
+				<Button variant="outline" size="icon-sm" aria-label="刷新插件" title="刷新插件" data-testid="plugin-refresh" aria-busy={snapshot.refreshing}
 					disabled={!manager || snapshot.refreshing || snapshot.plugins.some(plugin => plugin.busy)} onClick={() => void manager?.refresh()}>
 					<RefreshCw aria-hidden="true" className={snapshot.refreshing ? "animate-spin" : undefined} />
 				</Button>

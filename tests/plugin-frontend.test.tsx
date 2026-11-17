@@ -629,7 +629,9 @@ describe("plugin frontend surface and native importer", () => {
 			assert.ok(ids.indexOf("plugin-install-help") < ids.indexOf("plugin-authoring-help"));
 			assert.ok(ids.indexOf("plugin-authoring-help") < ids.indexOf("plugin-directory"));
 			assert.ok(ids.indexOf("plugin-directory") < ids.indexOf("plugin-fixture"));
-			const refresh = document.querySelector<HTMLButtonElement>('[aria-label="Refresh plugins"]')!;
+			// The refresh control is localized (aria-label="刷新插件"); locate it by
+			// its stable testid so copy changes do not break this interaction suite.
+			const refresh = document.querySelector<HTMLButtonElement>('[data-testid="plugin-refresh"]')!;
 			assert.ok(document.querySelector('[data-testid="plugin-directory"]')?.contains(refresh));
 			assert.equal(refresh.textContent, "");
 			assert.equal(refresh.disabled, false);
@@ -647,7 +649,7 @@ describe("plugin frontend surface and native importer", () => {
 			await click(refresh); assert.equal(refreshPosts, 2);
 			assert.equal(document.querySelector('[data-testid="section-plugins"] [role="alert"]'), null);
 			assert.equal(document.querySelector('nav[aria-label="Plugin views"]'), null, "enabled plugin views do not create automatic navigation");
-			const gear = document.querySelector<HTMLButtonElement>('[aria-label="Settings for Plugin fixture"]')!;
+			const gear = document.querySelector<HTMLButtonElement>('[aria-label="\u201cPlugin fixture\u201d\u7684\u8bbe\u7f6e"]')!;
 			assert.ok(gear);
 			assert.equal(gear.nextElementSibling?.getAttribute("role"), "switch", "gear sits immediately left of toggle");
 			assert.equal(document.querySelector('[data-testid="section-plugins"] a[href^="/plugins/"]'), null, "management does not list plugin views");
@@ -656,14 +658,14 @@ describe("plugin frontend surface and native importer", () => {
 			assert.ok(document.body.textContent?.includes("Fixture custom settings"), "plugin settings work despite core fetch failure");
 			assert.equal(document.querySelector('[data-testid="settings-nav-plugin:fixture"]')?.getAttribute("aria-current"), "true");
 			assert.deepEqual(actions, []);
-			await click(button("Community plugins")); assert.equal(settingsCleanups, 1);
+			await click(button("\u793e\u533a\u63d2\u4ef6")); assert.equal(settingsCleanups, 1);
 			await act(async () => { frames.get("record-changed")!(JSON.stringify({ chatId: "external" })); });
 			assert.deepEqual(events, [{ type: "record-changed", chatId: "external" }]);
 			await click(document.querySelector<HTMLButtonElement>('[role="switch"]')!);
 			assert.equal(document.querySelector('[role="switch"]')?.getAttribute("aria-checked"), "false");
 			assert.equal(document.querySelector('nav[aria-label="Plugin views"]'), null);
 			assert.equal(activated, 1);
-			assert.equal(document.querySelector('[aria-label="Settings for Plugin fixture"]'), null, "disabled plugins have no settings gear");
+			assert.equal(document.querySelector('[aria-label="\u201cPlugin fixture\u201d\u7684\u8bbe\u7f6e"]'), null, "disabled plugins have no settings gear");
 			assert.equal(document.querySelector('[data-testid="settings-nav-plugin:fixture"]'), null);
 			await act(async () => { await window.__lhPluginWindow!.manager.setEnabled("fixture", true); });
 			await click(document.querySelector<HTMLButtonElement>('[data-testid="settings-nav-plugin:fixture"]')!);
@@ -707,7 +709,10 @@ describe("plugin frontend surface and native importer", () => {
 	});
 	it("Settings explains trusted local code, broad access, restart recovery and directory install/refresh", () => {
 		const html = renderToStaticMarkup(<PluginsSection />);
-		for (const copy of ["trusted local code", "broad file and network access", "not sandboxed", "restarting LearnHarness", "disabled by default", "Refresh plugins", "如何安装插件", "Build a plugin", "Download authoring skill", "npm run build", "Prebuilt packages", "Preserve", "data/"]) assert.ok(html.includes(copy), copy);
+		// The same five capability guarantees as the English original, plus the
+		// default-off line the install help carries; smoke-plugin-browser.mjs
+		// asserts these localized phrases against the live panel.
+		for (const copy of ["本地可信代码", "可访问文件与网络", "不受沙箱限制", "重启 LearnHarness", "默认处于停用状态", "刷新插件", "如何安装插件", "开发插件", "下载开发技能", "npm run build", "预构建包", "更新时", "data/"]) assert.ok(html.includes(copy), copy);
 		const document = parseHTML(html).document;
 		const help = document.querySelector('[data-testid="plugin-install-help"]')!;
 		assert.equal(help.hasAttribute("open"), false);
@@ -721,13 +726,13 @@ describe("plugin frontend surface and native importer", () => {
 		assert.equal(download.hasAttribute("download"), true);
 		assert.equal(document.querySelector('[data-testid="plugin-authoring-help"]')?.querySelectorAll("p").length, 1);
 		assert.equal(document.querySelector('[data-testid="plugin-authoring-help"] p')?.textContent, "下载供代码智能体使用的插件开发技能。");
-		const refresh = document.querySelector('[aria-label="Refresh plugins"]')!;
+		const refresh = document.querySelector('[data-testid="plugin-refresh"]')!;
 		assert.equal(refresh.textContent, "");
 		assert.equal(refresh.hasAttribute("disabled"), true, "no provider means disabled");
 		assert.ok(refresh.querySelector('svg[aria-hidden="true"]'));
 		assert.ok(document.querySelector('[data-testid="plugin-directory"]')?.contains(refresh));
 		const core = renderToStaticMarkup(<PluginsSection origin="core" />);
-		for (const text of ["如何安装插件", "Build a plugin", "Download authoring skill", "Refresh plugins"]) assert.equal(core.includes(text), false, text);
+		for (const text of ["如何安装插件", "开发插件", "下载开发技能", "刷新插件", "本地可信代码"]) assert.equal(core.includes(text), false, text);
 	});
 	it("native ESM wrapper is a public module, with no dynamic evaluation or bundled import escape hatch", async () => {
 		const script = await readFile(new URL("../public/plugin-loader.js", import.meta.url), "utf8");
