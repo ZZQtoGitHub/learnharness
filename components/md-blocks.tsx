@@ -20,7 +20,8 @@
  *
  * THE ONE AFFORDANCE (user-decided): a small muted COPY icon at each block's
  * top-right corner, revealed on hover — copying the SOURCE (table →
- * Markdown, code → text, mermaid → chart source, math → the raw TeX). It
+ * Markdown with its inline formatting, code → text, mermaid → the chart
+ * source inside its fence, math → the raw TeX). It
  * never fakes a table column or shifts layout, and hover-reveal keeps the
  * reading surface clean — the whole point of the melt. Text selection stays
  * free: the icon lives in dead corner space. Mermaid additionally gets an
@@ -30,10 +31,9 @@
 import { cloneElement, createContext, isValidElement, useContext, useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { CheckIcon, CopyIcon, MaximizeIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fencedMermaid, tableToMarkdown } from "@/lib/markdown-copy";
 import {
 	CodeBlock,
-	extractTableDataFromElement,
-	tableDataToMarkdown,
 	useIsCodeFenceIncomplete,
 } from "streamdown";
 import type { ExtraProps } from "streamdown";
@@ -207,7 +207,7 @@ function MermaidInline({ chart }: { chart: string }) {
 				dangerouslySetInnerHTML={{ __html: svg ?? "" }}
 			/>
 			{!displayOnly && <div className="absolute top-0 right-0 flex items-start gap-0.5">
-				<CopyCorner getText={() => chart} label="复制图表源码" />
+				<CopyCorner getText={() => fencedMermaid(chart)} label="复制图表源码" />
 				{overlay && (
 					<Hint
 					// Full-screen overlay copy (tooltip wave) — "session view" was
@@ -382,7 +382,9 @@ export function MarkdownBlockquote(props: ComponentProps<"blockquote"> & ExtraPr
  *  (streamdown's inner cells keep their padding/typography; the hairline
  *  rules live in globals.css on the data-streamdown attributes) inside a
  *  horizontal-scroller for wide ones, with the corner copy. The copy
- *  serializes the REAL DOM table (the library's own extractor → Markdown). */
+ *  serializes the REAL DOM table itself — `tableToMarkdown` in
+ *  `lib/markdown-copy` — because the library's extractor dropped inline
+ *  formatting (issue #739). */
 export function MarkdownTable(props: ComponentProps<"table"> & ExtraProps) {
 	const displayOnly = useContext(MarkdownDisplayOnlyContext);
 	const { children, node, ...rest } = props;
@@ -397,7 +399,7 @@ export function MarkdownTable(props: ComponentProps<"table"> & ExtraProps) {
 				// corner is fixed to the wrapper, not the scrolling table).
 				className="absolute top-1 right-1 z-10"
 				label="复制表格"
-				getText={() => (ref.current ? tableDataToMarkdown(extractTableDataFromElement(ref.current)) : "")}
+				getText={() => (ref.current ? tableToMarkdown(ref.current) : "")}
 			/>}
 			<div className="overflow-x-auto">
 				<table
