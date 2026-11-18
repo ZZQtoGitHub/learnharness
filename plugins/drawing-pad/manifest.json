@@ -1,10 +1,10 @@
 {
   "apiVersion": 1,
   "id": "drawing-pad",
-  "name": "Drawing Pad",
+  "name": "画板",
   "version": "0.1.0",
   "minAppVersion": "0.4.1",
-  "description": "Draw over read-only question references and send your working with learner submissions.",
+  "description": "在只读的题目参考图上作画，并将草稿随作答一起提交。",
   "main": "main.js",
   "backend": "backend.cjs",
   "styles": "styles.css"
