@@ -27,7 +27,7 @@ export function useSourceDirectory(enabled: boolean) {
 		request.current = controller;
 		try {
 			const response = await fetch("/api/graph/sources", { cache: "no-store", signal: controller.signal });
-			if (!response.ok) throw new Error("Could not read folders.");
+			if (!response.ok) throw new Error("无法读取文件夹。");
 			const body = await response.json() as SourceDirectory;
 			if (!controller.signal.aborted && current === version.current) setDirectory(body);
 		} catch {

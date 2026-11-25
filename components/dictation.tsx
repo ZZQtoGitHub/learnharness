@@ -109,7 +109,7 @@ export const DEEPGRAM_KEY_ID = "DEEPGRAM_API_KEY";
  * (desktop) or .env.local (dev)") — the surface says the short truth
  * instead. Exported for pins; the errored idle button's click recognizes
  * it and deep-links Settings → Keys → the Deepgram row. */
-export const DICTATION_KEYLESS = "Dictation needs a Deepgram key";
+export const DICTATION_KEYLESS = "语音输入需要 Deepgram 密钥";
 export const DICTATION_ACTIVE_ELSEWHERE = "语音输入已在其他位置启用";
 
 // Mounted controllers do not claim capture. Only start() acquires the single

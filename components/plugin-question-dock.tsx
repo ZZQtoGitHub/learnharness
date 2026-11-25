@@ -95,7 +95,7 @@ export function PluginQuestionDockContent({ viewReader, snapshot, chatId, draft,
 			};
 			const capture = (): Extract<ChatInput, { type: "plugin-question-answer" }> => {
 				const now = current.current;
-				if (!valid() || now.draft.answer.status !== "ready") throw new Error("Question is no longer ready");
+				if (!valid() || now.draft.answer.status !== "ready") throw new Error("题目已不再就绪");
 				return { type: "plugin-question-answer", questionId: now.snapshot.questionId, occurrence: now.snapshot.occurrence, answer: now.draft.answer.value,
 					...(now.snapshot.showThinking ? { thinking: now.draft.thinking } : {}),
 					...(now.snapshot.variant === "teach" && now.snapshot.input.type === "check" ? { readingThinking: now.draft.readingThinking } : {}),

@@ -1589,7 +1589,7 @@ export function Chat({
 		return { type: "unavailable", ...(expected ? { occurrence: expected } : {}), expanded: false, revealed: false };
 	};
 	const actionContext = () => surfaceTarget ? createPluginSessionActionContext({ placement: "top-bar", surface: "session", sessionId: chatId, kind: kind === "practice" ? "practice" : "teaching", surfaceTarget }, () => {
-		if (!submissionMounted.current || submissionLive.current.surfaceTarget !== surfaceTarget) throw new Error("This session view is no longer active.");
+		if (!submissionMounted.current || submissionLive.current.surfaceTarget !== surfaceTarget) throw new Error("该会话视图已不再活跃。");
 		return {
 			sessionId: chatId, kind: kind === "practice" ? "practice" : "teaching", title: titleText,
 			messages: nativeMessages, transcript: messages, status, reconciliation, busy, compacting,

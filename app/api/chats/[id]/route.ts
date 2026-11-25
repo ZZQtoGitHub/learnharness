@@ -7,7 +7,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 		// Stats refreshes don't adopt history or need plugin availability.
 		const chat = getChat(id);
 		return chat ? Response.json({ turns: chat.turns, pricing: sessionCost(chat) })
-			: Response.json({ error: "Not found" }, { status: 404 });
+			: Response.json({ error: "未找到" }, { status: 404 });
 	}
 	await reconcilePluginQuestionCompatibility(stores.chatStore, id);
 	let chat = getChat(id);

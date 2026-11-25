@@ -21,7 +21,7 @@ function fetchCatalog(revalidate = false): void {
 	catalogError = false;
 	publishCatalog();
 	catalogInflight = fetch("/api/models")
-		.then((r) => { if (!r.ok) throw new Error(`catalog request failed: ${r.status}`); return r.json() as Promise<ModelCatalogResponse>; })
+		.then((r) => { if (!r.ok) throw new Error(`模型目录请求失败：${r.status}`); return r.json() as Promise<ModelCatalogResponse>; })
 		.then((c) => {
 			if (generation === catalogGeneration) { catalogCache = c; catalogError = false; publishCatalog(); }
 		})
@@ -35,7 +35,7 @@ function fetchCatalog(revalidate = false): void {
 export async function refreshRemoteModelCatalog() {
 	const generation = catalogGeneration;
 	const response = await fetch("/api/models", { method: "POST" });
-	if (!response.ok) throw new Error("Model catalog refresh failed");
+	if (!response.ok) throw new Error("模型目录刷新失败");
 	const { outcome, catalog } = await response.json() as ModelCatalogRefreshResponse;
 	if (generation === catalogGeneration) {
 		catalogGeneration++;

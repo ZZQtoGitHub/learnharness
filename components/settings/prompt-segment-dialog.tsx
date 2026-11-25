@@ -35,7 +35,7 @@ export function PromptSegmentDialog({ name, source, override, mode, returnFocusF
 	const field = useRef<HTMLTextAreaElement>(null);
 	const titleId = useId(), nameId = useId();
 	const dirty = editing && text !== (savedText ?? source);
-	const title = !editing ? "View default" : savedText === null ? "Add override" : "Edit override";
+	const title = !editing ? "查看默认版本" : savedText === null ? "添加覆盖版本" : "编辑覆盖版本";
 
 	useLayoutEffect(() => {
 		if (confirmDiscard) keepEditing.current?.focus();
@@ -75,8 +75,8 @@ export function PromptSegmentDialog({ name, source, override, mode, returnFocusF
 			else if (result === "activation-failed") {
 				setSavedText(text);
 				setActivationFailed(true);
-				setError("Override saved, but it couldn't be put in use. Retry activation below.");
-			} else setError("Couldn't save the override. Your edits are still here.");
+				setError("覆盖版本已保存，但未能启用。请在下方重试启用。");
+			} else setError("覆盖版本保存失败。你的修改仍保留在这里。");
 		} finally {
 			pending.current = false;
 			setBusy(null);
@@ -91,8 +91,8 @@ export function PromptSegmentDialog({ name, source, override, mode, returnFocusF
 		try {
 			const result = await onDelete();
 			if (result === "deleted") onClose();
-			else if (result === "settings-busy") setError("Settings is still saving. Try deleting the override again after the save finishes.");
-			else setError("Couldn't delete the override.");
+			else if (result === "settings-busy") setError("设置仍在保存中。请等本次保存结束后再删除覆盖版本。");
+			else setError("覆盖版本删除失败。");
 		} finally {
 			pending.current = false;
 			setBusy(null);

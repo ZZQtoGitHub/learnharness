@@ -486,7 +486,7 @@ export class SessionModel {
 		const ticket = ++this.canonicalIssued;
 		const epoch = this.canonicalEpoch;
 		const response = await this.fetch(`/api/chats/${encodeURIComponent(this.chatId)}?view=stats`, { signal });
-		if (!response.ok) throw new Error("Could not refresh session stats.");
+		if (!response.ok) throw new Error("无法刷新会话统计。");
 		const stats = await response.json() as SessionStatsSnapshot;
 		if (signal?.aborted || epoch !== this.canonicalEpoch || ticket < this.canonicalAcknowledged) return undefined;
 		return stats;

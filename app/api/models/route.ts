@@ -18,6 +18,6 @@ export async function GET() {
 export async function POST() {
 	let outcome;
 	try { outcome = await refreshModelCatalog(); }
-	catch { return Response.json({ error: "Model catalog refresh failed" }, { status: 502, headers }); }
+	catch { return Response.json({ error: "模型目录刷新失败" }, { status: 502, headers }); }
 	return Response.json({ outcome, catalog: modelCatalog() } satisfies ModelCatalogRefreshResponse, { headers });
 }

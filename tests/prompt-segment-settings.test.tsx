@@ -139,7 +139,7 @@ it("edits one segment with recoverable Settings writes and refreshes without Pro
 		assert.equal(field().value, sourceText);
 		await edit(revisedText);
 		await click(dialog()!, "保存并启用");
-		assert.match(dialog()!.querySelector('[role="alert"]')!.textContent ?? "", /Couldn't save/);
+		assert.match(dialog()!.querySelector('[role="alert"]')!.textContent ?? "", /覆盖版本保存失败/);
 		assert.equal(field().value, revisedText);
 		assert.equal(overrideText, null);
 		failWrite = false;
@@ -174,7 +174,7 @@ it("edits one segment with recoverable Settings writes and refreshes without Pro
 		const count = agentWrites.length;
 		failActivation = true; // The old redundant post-delete PUT would've failed here.
 		await click(dialog()!, "删除覆盖版本");
-		assert.match(dialog()!.querySelector('[role="alert"]')!.textContent ?? "", /Settings is still saving/);
+		assert.match(dialog()!.querySelector('[role="alert"]')!.textContent ?? "", /设置仍在保存中/);
 		assert.equal(overrideText, revisedText, "a pending full-record ACK prevents dispatch");
 		assert.equal(button(dialog()!, "关闭").disabled, false);
 		await click(dialog()!, "关闭");

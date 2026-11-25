@@ -86,7 +86,7 @@ export function PluginProblemDockContent(props: PluginProblemDockProps & { regis
     let captured = "", revision = 0;
     const capture = (): Extract<ChatInput, { type: "plugin-problem-submission" }> => {
       const now = current.current;
-      if (!valid() || now.draft.submission.status !== "ready") throw new Error("Problem is no longer ready");
+      if (!valid() || now.draft.submission.status !== "ready") throw new Error("题目已不再就绪");
       captured = readThinking ? readThinking() : now.draft.thinking; revision = thinkingRevision.current;
       return { type: "plugin-problem-submission", problemId: now.snapshot.problemId, occurrence: now.occurrence, submission: now.draft.submission.value, thinking: captured };
     };

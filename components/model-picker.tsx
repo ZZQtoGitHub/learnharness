@@ -166,7 +166,7 @@ export function ModelControl({ chatId, onModelChange }: { chatId?: string; onMod
 				setOpen(null);
 				notifySettingsSaved("models");
 			} catch {
-				setError("Could not reach the server — try again.");
+				setError("无法连接服务器，请重试。");
 			}
 		},
 		[],
@@ -195,7 +195,7 @@ export function ModelControl({ chatId, onModelChange }: { chatId?: string; onMod
 				setSession({ settings: stored?.settings ?? next });
 				setOpen(null);
 			} catch {
-				setError("Could not reach the server — try again.");
+				setError("无法连接服务器，请重试。");
 			}
 		},
 		[chatId],

@@ -737,8 +737,8 @@ function SessionsSidebar() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(scope),
 			})
-				.then(async (res) => { if (!res.ok) reportFolderFailure(((await res.json().catch(() => ({}))) as { error?: string }).error ?? `Could not delete the folder (${res.status}).`); })
-				.catch(() => reportFolderFailure("Could not delete the folder — network error."));
+				.then(async (res) => { if (!res.ok) reportFolderFailure(((await res.json().catch(() => ({}))) as { error?: string }).error ?? `无法删除该文件夹（${res.status}）。`); })
+				.catch(() => reportFolderFailure("无法删除该文件夹——网络错误。"));
 			return;
 		}
 		const copy = folderDeleteCopy({
@@ -1138,7 +1138,7 @@ function SessionsSidebar() {
 							onClick={() => { setRenamingFolderId(ctxFolderId); setCtxFolderId(null); }}
 							className="flex items-center rounded-lg px-2.5 py-1.5 text-left text-foreground transition-colors hover:bg-accent"
 						>
-							Rename
+							重命名
 						</button>
 						<button
 							type="button"
@@ -1152,7 +1152,7 @@ function SessionsSidebar() {
 							}}
 							className="flex items-center rounded-lg px-2.5 py-1.5 text-left text-foreground transition-colors hover:bg-accent"
 						>
-							New subfolder
+							新建子文件夹
 						</button>
 						<button
 							type="button"
@@ -1160,7 +1160,7 @@ function SessionsSidebar() {
 							onClick={() => deleteFolder(ctxFolderId)}
 							className="flex items-center rounded-lg px-2.5 py-1.5 text-left text-muted-foreground/80 transition-colors hover:bg-accent hover:text-foreground"
 						>
-							Delete
+							删除
 						</button>
 					</MenuShell>
 				)}
