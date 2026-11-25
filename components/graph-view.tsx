@@ -64,12 +64,15 @@
  */
 
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { GraphFolderFilterControl, useGraphFolderSelection } from "@/components/graph-folder-filter";
+import { useSourceDirectory } from "@/components/source-directory";
 import { NotesImportControl, NotesImportErrors, NotesImportNotices, useNotesImport } from "@/components/notes-import.tsx";
 import { PluginGraphActions } from "@/components/plugin-chrome";
 import { SettingsSlider as SettingSlider } from "@/components/settings/controls";
 import Link from "next/link";
 import { FileTextIcon, ListTreeIcon, Loader2Icon, SearchIcon, SettingsIcon, WaypointsIcon } from "lucide-react";
-import { incrementalLayout, propositionSessionHref, type GraphCostSummary, type GraphNode, type GraphSnapshot } from "@/src/core";
+import { graphFolderIds, graphFolderVisibleIds, incrementalLayout, propositionSessionHref, type GraphCostSummary, type GraphNode, type GraphSnapshot } from "@/src/core";
 import { planCostLabel } from "@/components/usage-format";
 import { CLUSTER_LIGHTNESS, GraphCanvasRenderer, type GraphRenderSettings } from "./graph-canvas.ts";
 import { useAppearance } from "@/components/settings/appearance";
@@ -140,6 +143,21 @@ export function isNodeVisible(node: Pick<GraphNode, "name" | "statement">, query
         const q = query.trim().toLowerCase();
         if (!q) return true;
         return node.name.toLowerCase().includes(q) || node.statement.toLowerCase().includes(q);
+}
+
+/** Search alone retains its existing behavior. With an active folder filter,
+ * a junction can only draw if every endpoint survives the combined view. */
+export function graphVisibleIds(snapshot: Pick<GraphSnapshot, "nodes" | "impLinks">, query: string, folderVisibleIds: ReadonlySet<string> | null): Set<string> {
+	const visible = new Set<string>();
+	for (const node of snapshot.nodes) {
+		if ((folderVisibleIds === null || folderVisibleIds.has(node.id)) && isNodeVisible(node, query)) visible.add(node.id);
+	}
+	if (folderVisibleIds !== null && query.trim()) {
+		for (const { id, premises, conclusion } of snapshot.impLinks) {
+			if (!visible.has(conclusion) || !premises.every((premise) => visible.has(premise))) visible.delete(id);
+		}
+	}
+	return visible;
 }
 
 /** In-place sessions patch for a live rename (rename-shuffle fix,
@@ -946,20 +964,24 @@ export function observeNodeCardPosition(card: HTMLDivElement, container: HTMLDiv
 }
 
 export function GraphView({
-        chainSelectOpen = false,
-        practiceSelection,
-        onPracticeSelectionChange,
-        onChainSelectClose,
+	chainSelectOpen = false,
+	practiceSelection,
+	onPracticeSelectionChange,
+	onChainSelectClose,
+	folderFilterSlot,
 }: {
-        /** PRACTICE SELECT (owner vision, 2026-10-04): the LIFTED, persistent
-         *  pick set — every check/clear in the chain table (however opened)
-         *  reports the full node list up immediately; the composer-side chip
-         *  reflects it live. chainSelectOpen still drives the picker mode
-         *  (Done instead of Delete). */
-        chainSelectOpen?: boolean;
-        practiceSelection?: ReadonlySet<string>;
-        onPracticeSelectionChange?: (nodes: { id: string; name: string; statement: string }[]) => void;
-        onChainSelectClose?: () => void;
+	/** Where the folder filter control portals: the home header's top-left
+	 *  chrome, after the sidebar toggle. Absent → no folder filter control. */
+	folderFilterSlot?: HTMLElement | null;
+	/** PRACTICE SELECT (owner vision, 2026-10-04): the LIFTED, persistent
+	 *  pick set — every check/clear in the chain table (however opened)
+	 *  reports the full node list up immediately; the composer-side chip
+	 *  reflects it live. chainSelectOpen still drives the picker mode
+	 *  (Done instead of Delete). */
+	chainSelectOpen?: boolean;
+	practiceSelection?: ReadonlySet<string>;
+	onPracticeSelectionChange?: (nodes: { id: string; name: string; statement: string }[]) => void;
+	onChainSelectClose?: () => void;
 }) {
         const containerRef = useRef<HTMLDivElement | null>(null);
         const interactions = useInteractionLayers();
@@ -1043,16 +1065,32 @@ export function GraphView({
         const rendererRef = useRef<GraphCanvasRenderer | null>(null);
         const posRef = useRef<Map<string, { x: number; y: number }> | null>(null);
 
-        // The id set that survives the current search — consumed by the
-        // visibility feed and the "no matches" hint.
-        const visibleIds = useMemo(() => {
-                const set = new Set<string>();
-                if (snapshot)
-                        for (const node of snapshot.nodes) {
-                                if (isNodeVisible(node, query)) set.add(node.id);
-                        }
-                return set;
-        }, [snapshot, query]);
+	// FOLDER FILTER (approved plan): view only. The shared organization's
+	// placements map sources to folders; a proposition shows when ANY of its
+	// surviving sources sits in a ticked folder (subfolders included when
+	// ticked). Search and folder filter both apply.
+	const { directory: sourceDirectoryState } = useSourceDirectory(true);
+	const organization = sourceDirectoryState?.organization;
+	const { selected: folderSelection, setSelected: setFolderSelection } = useGraphFolderSelection(organization);
+	const listedFolders = useMemo(() => {
+		if (!organization || !snapshot) return new Set<string>();
+		const sources = new Set<string>();
+		for (const node of snapshot.propositions) for (const id of snapshot.nodeSessions[node.id] ?? []) sources.add(id);
+		return graphFolderIds(organization, sources);
+	}, [organization, snapshot]);
+	const folderVisibleIds = useMemo(() => !organization || !snapshot ? null : graphFolderVisibleIds({
+		organization,
+		selected: folderSelection,
+		listed: listedFolders,
+		propositionIds: snapshot.propositions.map((node) => node.id),
+		nodeSources: snapshot.nodeSessions,
+		impLinks: snapshot.impLinks,
+	}), [organization, snapshot, folderSelection, listedFolders]);
+	const filtering = query.trim() !== "" || folderVisibleIds !== null;
+	// The id set that survives the current search AND folder filter —
+	// consumed by the visibility feed and the "no matches" hint.
+	const visibleIds = useMemo(() => snapshot ? graphVisibleIds(snapshot, query, folderVisibleIds) : new Set<string>(),
+		[snapshot, query, folderVisibleIds]);
 
         // Fetch the derived graph. Re-runs when a background pipeline run
         // finishes (refreshTick) — its merges just landed in the ledger.
@@ -1434,13 +1472,13 @@ export function GraphView({
                 rendererRef.current?.setSettings(deferredSettings);
         }, [deferredSettings, isEmpty]);
 
-        // Feed #3 — visibility: hidden nodes drop out of rendering, picking,
-        // hover, AND labels; edges drop when either endpoint is hidden.
-        useEffect(() => {
-                rendererRef.current?.setVisible(query.trim() ? visibleIds : null);
-                // The open detail card cannot outlive its node's visibility.
-                setSelected((sel) => (sel && visibleIds.has(sel.node.id) ? sel : null));
-        }, [visibleIds, query]);
+	// Feed #3 — visibility: hidden nodes drop out of rendering, picking,
+	// hover, AND labels; edges drop when either endpoint is hidden.
+	useEffect(() => {
+		rendererRef.current?.setVisible(filtering ? visibleIds : null);
+		// The open detail card cannot outlive its node's visibility.
+		setSelected((sel) => (sel && visibleIds.has(sel.node.id) ? sel : null));
+	}, [visibleIds, filtering, isEmpty]);
 
         // Feed #4 — region tuning. `isEmpty` in the deps (same as Feed #2):
         // the settings fetch resolves BEFORE the snapshot creates the renderer,
@@ -1545,55 +1583,60 @@ export function GraphView({
 
                         <PluginGraphActions />
 
-                        {/* Legend + filters: search box and per-state toggle rows. */}
-                        {/* Top-right controls — separate floating containers (owner,
-                            graph-view round 2). Row order (2026-09-17): search,
-                            coverage, import, gear — coverage sits between search and
-                            import; the gear keeps the corner. items-start (not center)
-                            so the search container's no-match note can grow downward
-                            without shifting its siblings — every control is 36px tall
-                            (header band, 2026-09-20), top alignment pins the row.
-                            Coverage renders even when the graph is EMPTY — an empty
-                            graph with unextracted sessions is exactly when it matters
-                            (extract → the graph gains nodes).
-                            lh-no-drag (2026-09-17): home.tsx's floating drag strip
-                            underlays this row — Electron's drag mask ignores z-index,
-                            so without an explicit carve-out the controls were
-                            unclickable in the desktop app (owner report). The old
-                            flex-wrap (narrow-window wave, 2026-09-17) folded the row
-                            onto two lines below the sidebar threshold — owner rejected
-                            it (2026-09-20): one row always, the search shrinks (see
-                            the header-band comment on the column below). */}
-                        {/* Header band (owner, 2026-09-20): the controls sit IN the
-                            header's visual row — top-2 aligns with the sidebar toggle's
-                            band (header py-2, toggle h-9), every control slimmed to 36px.
-                            The width cap lives HERE on the absolute element (100% resolves
-                            against the full-bleed parent) — the row NEVER wraps (owner
-                            rejected the two-row fold); in narrow windows the search is
-                            the flexible element and shrinks instead. */}
-                        <div className="lh-no-drag lh-wco-floating absolute right-2 top-2 z-10 flex max-w-[calc(100%-5.5rem)] flex-col items-end gap-2">
-                        {/* z-20 (2026-09-20): the row paints above the cost number below
-                            it — without this, the later-in-DOM cost control layered over
-                            the settings/coverage dropdowns (owner report), still hoverable
-                            and clickable on top of them. The row is a stacking context, so
-                            its open dropdowns cover the number; clicks land on the panel. */}
-                        <div className="relative z-20 flex min-w-0 items-start gap-2">
-                                {/* The actions row (empty-graph chrome wave, owner 2026-09-25):
-                                    Import Notes always — the empty graph's entry point; search +
-                                    settings only when nodes exist, fading in on their mount. */}
-                                <GraphChromeRow
-                                        isEmpty={isEmpty}
-                                        query={query}
-                                        onQuery={setQuery}
-                                        noMatch={snapshot !== null && visibleIds.size === 0 && query.trim() !== ""}
-                                        importing={importing}
-                                        searchInputRef={searchInputRef}
-                                        onImportFiles={onImportFiles}
-                                        settings={settings}
-                                        changeSettings={changeSettings}
-                                        onOpenChains={() => setChainsOpen(true)}
-                                />
-                        </div>
+			{/* Legend + filters: search box and per-state toggle rows. */}
+			{/* Top-right controls — separate floating containers (owner,
+			    graph-view round 2). Row order (2026-09-17): search,
+			    coverage, import, gear — coverage sits between search and
+			    import; the gear keeps the corner. items-start (not center)
+			    so the search container's no-match note can grow downward
+			    without shifting its siblings — every control is 36px tall
+			    (header band, 2026-09-20), top alignment pins the row.
+			    Coverage renders even when the graph is EMPTY — an empty
+			    graph with unextracted sessions is exactly when it matters
+			    (extract → the graph gains nodes).
+			    lh-no-drag (2026-09-17): home.tsx's floating drag strip
+			    underlays this row — Electron's drag mask ignores z-index,
+			    so without an explicit carve-out the controls were
+			    unclickable in the desktop app (owner report). The old
+			    flex-wrap (narrow-window wave, 2026-09-17) folded the row
+			    onto two lines below the sidebar threshold — owner rejected
+			    it (2026-09-20): one row always, the search shrinks (see
+			    the header-band comment on the column below). */}
+			{/* Header band (owner, 2026-09-20): the controls sit IN the
+			    header's visual row — top-2 aligns with the sidebar toggle's
+			    band (header py-2, toggle h-9), every control slimmed to 36px.
+			    The width cap lives HERE on the absolute element (100% resolves
+			    against the full-bleed parent) — the row NEVER wraps (owner
+			    rejected the two-row fold); in narrow windows the search is
+			    the flexible element and shrinks instead. */}
+			<div className="lh-no-drag lh-wco-floating absolute right-2 top-2 z-10 flex max-w-[calc(100%-5.5rem)] flex-col items-end gap-2">
+			{/* z-20 (2026-09-20): the row paints above the cost number below
+			    it — without this, the later-in-DOM cost control layered over
+			    the settings/coverage dropdowns (owner report), still hoverable
+			    and clickable on top of them. The row is a stacking context, so
+			    its open dropdowns cover the number; clicks land on the panel. */}
+			<div className="relative z-20 flex min-w-0 items-start gap-2">
+				{/* The actions row (empty-graph chrome wave, owner 2026-09-25):
+				    Import Notes always — the empty graph's entry point; search +
+				    settings only when nodes exist, fading in on their mount. */}
+				{folderFilterSlot && !isEmpty && organization && createPortal(
+					<GraphFolderFilterControl organization={organization} listed={listedFolders}
+						selected={folderSelection} onChange={setFolderSelection} />,
+					folderFilterSlot,
+				)}
+				<GraphChromeRow
+					isEmpty={isEmpty}
+					query={query}
+					onQuery={setQuery}
+					noMatch={snapshot !== null && visibleIds.size === 0 && query.trim() !== ""}
+					importing={importing}
+					searchInputRef={searchInputRef}
+					onImportFiles={onImportFiles}
+					settings={settings}
+					changeSettings={changeSettings}
+					onOpenChains={() => setChainsOpen(true)}
+				/>
+			</div>
 
                         <NotesImportErrors errors={notesImport.errors} />
                         <NotesImportNotices notices={notesImport.notices} />

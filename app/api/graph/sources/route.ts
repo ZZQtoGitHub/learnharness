@@ -23,6 +23,6 @@ export async function POST(request: Request) {
 	try { return Response.json(sourceDirectory.change(await readOrganizationAction(request))); }
 	catch (error) {
 		const input = error instanceof SourceOrganizationInputError;
-		return Response.json({ error: input ? error.message : "Could not save source organization." }, { status: input ? 400 : 500 });
+		return Response.json({ error: input ? error.message : "无法保存资料组织方式。" }, { status: input ? 400 : 500 });
 	}
 }

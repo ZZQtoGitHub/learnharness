@@ -49,7 +49,7 @@ test("model-catalog API and menus never advertise the CLI adapter's placeholder 
 	const models = CLAUDE_CODE_MODELS.map(toModelDto);
 	assert(models.every((model) => model.cost === null));
 	const html = renderToStaticMarkup(<ModelMenuList models={models} effectiveId={undefined} onPick={() => {}} />);
-	assert.equal((html.match(/>CLI 计费<\/span>/g) ?? []).length, 3);
+	assert.equal((html.match(/>CLI 计费<\/span>/g) ?? []).length, 4);
 	assert.match(html, /不做估算/);
-	assert(!html.includes("$0")); assert(!html.includes("美元 / 百万 token")); assert(!html.includes("(订阅)"));
+	assert(!html.includes("$0")); assert(!html.includes("美元 / 百万 token")); assert(!html.includes("订阅连接"));
 });

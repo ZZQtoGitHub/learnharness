@@ -1,4 +1,5 @@
 import { checkSource, checkSvgSize, TEX_QUEUE_LIMIT, TEX_TIMEOUT_MS } from "./contract.ts";
+import { boundTexError } from "./tex-diagnostics.ts";
 
 interface Job {
   id: number;
@@ -59,7 +60,7 @@ export class TexRunner {
           if (typeof event.data.svg === "string") {
             try { checkSvgSize(event.data.svg); this.finish(event.data.svg); }
             catch (error) { this.finish(undefined, error as Error, true); }
-          } else this.finish(undefined, new Error(typeof event.data.error === "string" ? event.data.error : "TeX 工作进程返回的结果无效。"), true);
+          } else this.finish(undefined, new Error(typeof event.data.error === "string" ? boundTexError(event.data.error) : "TeX 工作进程返回的结果无效。"), true);
         };
         worker.onerror = event => { event.preventDefault(); if (this.worker === worker) this.finish(undefined, new Error("TeX 工作进程失败。"), true); };
         worker.onmessageerror = () => { if (this.worker === worker) this.finish(undefined, new Error("TeX 工作进程返回了无法解析的结果。"), true); };

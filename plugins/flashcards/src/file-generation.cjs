@@ -69,11 +69,8 @@ function validateFileInput(input) {
 const estimate = prompt => Math.ceil(Buffer.byteLength(instructions + JSON.stringify(resultSchema) + prompt, 'utf8') / 3) + 256;
 function prepareFileChunks(options) {
   const { name, markdown } = validateFileInput(options);
-  const { chunkBudget, entry, ranges } = options;
-  if (!Number.isSafeInteger(chunkBudget) || chunkBudget < 1) fail('输入预算必须是正的安全整数。');
-  if (!entry || typeof entry !== 'object') fail('需要一个模型目录条目。');
-  const outputLimit = entry.maxTokens ?? 8192, contextLimit = entry.contextWindow ?? Infinity;
-  if (!Number.isSafeInteger(outputLimit) || outputLimit < 1024 || (contextLimit !== Infinity && (!Number.isSafeInteger(contextLimit) || contextLimit < 1))) fail('所选模型无法同时容纳此上下文和至少 1024 token 的输出额度。');
+  const { chunkBudget, ranges } = options;
+  if (!Number.isSafeInteger(chunkBudget) || chunkBudget < 1) fail('Input budget must be a positive safe whole number.');
   const boundary = offset => !(offset > 0 && offset < markdown.length && high(markdown.charCodeAt(offset - 1)) && low(markdown.charCodeAt(offset)));
   if (ranges !== undefined && !Array.isArray(ranges)) fail('源范围必须是数组。');
   const spans = ranges === undefined ? [{ start: 0, end: markdown.length }] : ranges.map(range => {
@@ -84,9 +81,7 @@ function prepareFileChunks(options) {
   if (ordered.some((span, index) => index && span.start < ordered[index - 1].end)) fail('源范围不能重叠。');
   const plan = (start, end) => {
     const input = { name, markdown: markdown.slice(start, end) }, prompt = promptFor(input);
-    const tokens = estimate(prompt);
-    const maxTokens = Math.min(8192, outputLimit, contextLimit - tokens - 256);
-    return { start, end, input, prompt, tokens, maxTokens };
+    return { start, end, input, prompt, tokens: estimate(prompt) };
   };
   // Match core extraction's source-only chars/4 budget. Filename, JSON
   // escaping, instructions and schema remain in the full-request estimate.
@@ -105,9 +100,7 @@ function prepareFileChunks(options) {
         const preferred = paragraphEnd > 0 ? paragraphEnd : newlineEnd;
         if (preferred > 0) end = start + preferred;
       }
-      const chunk = plan(start, end);
-      if (chunk.maxTokens < 1024) fail('所选模型无法同时容纳此上下文和输出额度。请减小分块预算或改用其他模型。');
-      chunks.push(chunk); start = end;
+      chunks.push(plan(start, end)); start = end;
     }
   }
   return chunks;
